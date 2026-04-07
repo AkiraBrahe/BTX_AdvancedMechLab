@@ -1,0 +1,22 @@
+{
+  "Name": "BTX_AdvancedMechLab",
+  "Enabled": true,
+  "Version": "0.1",
+  
+  "Description": "Allows for armor and engine cooling customization in the MechLab.",
+  "Author": "Kierk",
+  "Website": "https://github.com/AkiraBrahe/BTX_AdvancedMechLab",
+
+  "ConflictsWith": [ "ArmorRepair" ],
+  "DependsOn": [ "BTX_ExpansionPack" ],
+
+  "DLL": "BTX_AdvancedMechLab.dll",
+
+  "Settings": {
+    "ArmorRepair": {
+      "EnableStructureRepair": true,
+      "EnableAutoRepairPrompt": true,
+      "AutoRepairMechsWithDestroyedComponents": true
+    }
+  }
+}

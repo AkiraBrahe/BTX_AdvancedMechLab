@@ -1,0 +1,15 @@
+# Visual Studio build outputs
+.vs/
+bin/
+obj/
+
+# Visual Studio Code settings
+.vscode/
+
+# Compiled binaries
+*.dll
+*.pdb
+
+# GitHub releases
+*.zip
+CHANGELOG.md
