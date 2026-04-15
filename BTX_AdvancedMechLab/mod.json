@@ -18,5 +18,9 @@
       "EnableAutoRepairPrompt": true,
       "AutoRepairMechsWithDestroyedComponents": true
     }
-  }
+  },
+
+  "Manifest": [
+    { "Type": "HeatSinkDef", "Path": "heatsinks" }
+  ]
 }

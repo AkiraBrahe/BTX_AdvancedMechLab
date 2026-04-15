@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ModTekSimpleInjector>
+    <AddField ToType="BattleTech.MechDef" InAssembly="Assembly-CSharp"
+        Name="ArmorType" OfType="System.String" />
+    <AddField ToType="BattleTech.MechDef" InAssembly="Assembly-CSharp"
+        Name="CoolingType" OfType="System.String" />
+    <AddField ToType="BattleTech.MechDef" InAssembly="Assembly-CSharp"
+        Name="PatchworkLocations" OfType="BattleTech.ChassisLocations[]" />
+</ModTekSimpleInjector>
