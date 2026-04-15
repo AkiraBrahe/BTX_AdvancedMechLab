@@ -24,6 +24,7 @@ namespace BTX_AdvancedMechLab.Core
         public struct ArmorInfo
         {
             public string Name;
+            public string Description;
             public string Tag;
             public string ScrapItemDefID;
             public int CriticalSlots;
@@ -37,7 +38,8 @@ namespace BTX_AdvancedMechLab.Core
         public static Dictionary<ArmorType, ArmorInfo> ArmorTypes = new()
         {
             { ArmorType.Standard, new ArmorInfo {
-                Name = "Standard Armor",
+                Name = "Standard",
+                Description = "Standard armor provides reliable protection and is the baseline for all other armor types.",
                 Tag = string.Empty,
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -49,6 +51,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.Primitive, new ArmorInfo {
                 Name = "Primitive",
+                Description = "Primitive armor provides two-thirds the protection of standard armor at half the cost.",
                 Tag = "chassis_primitive",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -60,6 +63,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.Industrial, new ArmorInfo {
                 Name = "Industrial",
+                Description = "Industrial armor provides two-thirds the protection of standard armor at half the cost.",
                 Tag = "chassis_industrial",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -71,6 +75,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.HeavyIndustrial, new ArmorInfo {
                 Name = "Heavy Industrial",
+                Description = "Heavy Industrial armor provides the same protection as standard armor.",
                 Tag = "chassis_heavy_industrial",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -82,17 +87,19 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.FerroFibrous, new ArmorInfo {
                 Name = "Ferro-Fibrous",
+                Description = "Ferro-Fibrous armor provides 12% more protection than standard armor and requires 12 critical slots.",
                 Tag = "chassis_ferro",
                 ScrapItemDefID = string.Empty,
-                CriticalSlots = 12, // ~25% of available slots
+                CriticalSlots = 12,
                 IntroDate = new DateTime(3034, 1, 1),
                 ProductionDate = new DateTime(3040, 1, 1),
                 PptMultiplier = 1.12f,
                 TPCost = 1.5f,
-                CBCost = 2f // 20,000 C-Bills per ton (60,000 C-Bills per ton before 3040)
+                CBCost = 2f // 20,000 C-Bills per ton
             } },
             { ArmorType.ClanFerro, new ArmorInfo {
                 Name = "Clan Ferro-Fibrous",
+                Description = "Clan Ferro-Fibrous armor provides 20% more protection than standard armor and only requires 6 critical slots.",
                 Tag = "chassis_ferro",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 6,
@@ -104,20 +111,22 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.Hardened, new ArmorInfo {
                 Name = "Hardened",
+                Description = "Hardened armor provides the same protection as standard armor and prevents through-armor criticals to the location it is applied to. Running speed is reduced when applied to the legs.",
                 Tag = "chassis_hardened",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
                 IntroDate = new DateTime(3047, 1, 1),
                 ProductionDate = new DateTime(3081, 1, 1),
-                PptMultiplier = 0.5f,
+                PptMultiplier = 1f, // Simplified logic
                 TPCost = 1.5f,
                 CBCost = 1.5f // 15,000 C-Bills per ton
             } },
             { ArmorType.Stealth, new ArmorInfo {
                 Name = "Stealth",
+                Description = "Stealth armor provides the same protection as standard armor while making the 'Mech harder to detect and target as long as its ECM Suite is active. It requires 12 critical slots.",
                 Tag = "chassis_stealth",
                 ScrapItemDefID = string.Empty,
-                CriticalSlots = 12, // 2 per location, plus 2 for ECM
+                CriticalSlots = 12,
                 IntroDate = new DateTime(3051, 1, 1),
                 ProductionDate = new DateTime(3063, 1, 1),
                 PptMultiplier = 1f,
@@ -126,6 +135,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.LightFerro, new ArmorInfo {
                 Name = "Light Ferro",
+                Description = "Light Ferro-Fibrous armor provides 6% more protection than standard armor and requires 6 critical slots.",
                 Tag = "chassis_light_ferro",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 6,
@@ -137,6 +147,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.HeavyFerro, new ArmorInfo {
                 Name = "Heavy Ferro",
+                Description = "Heavy Ferro-Fibrous armor provides 24% more protection than standard armor but requires 18 critical slots.",
                 Tag = "chassis_heavy_ferro",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 18,
@@ -148,6 +159,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.Reflective, new ArmorInfo {
                 Name = "Reflective",
+                Description = "Reflective armor provides the same protection as standard armor and reflects 50% of incoming energy damage. It requires 10 critical slots.",
                 Tag = "chassis_reflective",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 10,
@@ -159,6 +171,7 @@ namespace BTX_AdvancedMechLab.Core
             } },
             { ArmorType.Reactive, new ArmorInfo {
                 Name = "Reactive",
+                Description = "Reactive armor provides the same protection as standard armor and reduces incoming missile and AoE damage by 50%. It requires 14 critical slots.",
                 Tag = "chassis_reactive",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 14,
