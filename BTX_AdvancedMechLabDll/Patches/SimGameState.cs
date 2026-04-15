@@ -109,15 +109,9 @@ namespace BTX_AdvancedMechLab.Patches
         public static void Postfix(SimGameState __instance, string mechSimGameUID, ref WorkOrderEntry_RepairMechStructure __result)
         {
             var mech = __instance.ActiveMechs.Values.FirstOrDefault(md => md.GUID == mechSimGameUID);
-            if (mech == null || __result == null)
-                return;
+            if (mech == null || __result == null) return;
 
-            var structureInfo = mech.GetStructureInfo();
-            float tpmod = structureInfo.TPCost;
-            float cbmod = structureInfo.CBCost;
-
-            __result.Cost = Mathf.CeilToInt(__result.Cost * tpmod);
-            __result.CBillCost = Mathf.CeilToInt(__result.CBillCost * cbmod);
+            CalculateStructureRepairCost(__instance, mech, __result);
         }
     }
 
@@ -137,12 +131,7 @@ namespace BTX_AdvancedMechLab.Patches
             if (mech == null)
                 return;
 
-            var armorInfo = mech.GetArmorInfo();
-            float tpmod = armorInfo.TPCost;
-            float cbmod = armorInfo.CBCost;
-
-            __result.Cost = Mathf.CeilToInt(__result.Cost * tpmod);
-            __result.CBillCost = Mathf.CeilToInt(__result.CBillCost * cbmod);
+            CalculateArmorRepairCost(mech, __result);
         }
     }
 

@@ -287,6 +287,71 @@ namespace BTX_AdvancedMechLab.Features
 
         #endregion
 
+        #region Cost Calculations
+
+        /// <summary>
+        /// Calculates the structure repair cost for a given mech using tabletop rules.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>Standard structure weight is 10% of the mech tonnage
+        /// <br>e.g. 100 ton mech with Standard (Weight=1) = 10 tons, Endo (Weight=0.5) = 5 tons</br></item>
+        /// <item>Base cost per ton is 4,000 C-Bills for standard structure
+        /// <br>e.g. Standard (CBCost=1) = 4,000 C-Bills/ton, Endo (CBCost=4) = 16,000 C-Bills/ton</br></item>
+        /// <item>Endo steel costs 48,000 C-Bills per ton (3x markup) before the technology is reintroduced.</item>
+        /// </list>
+        /// </remarks>
+        public static void CalculateStructureRepairCost(SimGameState simGame, MechDef mech, WorkOrderEntry_RepairMechStructure workOrder)
+        {
+            float tonnage = mech.Chassis.Tonnage;
+            float totalStructure = mech.GetTotalStructurePoints();
+            if (totalStructure == 0) return;
+
+            var structure = mech.GetStructureInfo();
+            float structureWeight = (tonnage * 0.10f) * structure.WeightMultiplier;
+            float costPerTon = 4000f * structure.CBCost;
+            float structureCost = structureWeight * costPerTon;
+            float costPerPoint = structureCost / totalStructure;
+
+            float baseModifier = 1f;
+            var maxLocStructure = mech.GetChassisLocationDef(workOrder.Location).InternalStructure;
+            if (Mathf.Approximately(workOrder.StructureAmount, maxLocStructure))
+            {
+                baseModifier = simGame.Constants.MechLab.ZeroStructureCBillModifier;
+            }
+
+            var currentDate = simGame.CurrentDate;
+            if (structure.Name == "Endo Steel" && currentDate < new DateTime(3040, 1, 1))
+            {
+                baseModifier *= 3f;
+            }
+
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * structure.TPCost);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.StructureAmount * costPerPoint * baseModifier);
+        }
+
+        /// <summary>
+        /// Calculates the armor repair cost for a given mech using tabletop rules.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>Standard armor cost is 10,000 C-Bills per ton (125 C-Bills per point * 80 points)</item>
+        /// <item>Armor types with higher PptMultiplier (e.g. Ferro 1.12x) pack more points per ton</item>
+        /// <item>Calculation: (base armor cbill cost / PptMultiplier) * actual armor cbill modifier
+        /// <br>e.g. Ferro: (1 ton std * 1.12 density) / (125 base points) = 1.12 tons effective</br>
+        /// <br>then 1.12 * (2.0 / 1.12) = 2.0x base cost = 20,000 C-Bills per ton</br></item>
+        /// </list>
+        /// </remarks>
+        public static void CalculateArmorRepairCost(MechDef mech, WorkOrderEntry_ModifyMechArmor workOrder)
+        {
+            var armor = mech.GetArmorInfo();
+            float costMultiplier = armor.CBCost / armor.PptMultiplier;
+
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * armor.TPCost);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier);
+        }
+
+        #endregion
 
         #region Status Evaluation
 
