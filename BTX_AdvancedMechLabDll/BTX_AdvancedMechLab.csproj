@@ -40,6 +40,15 @@
       <HintPath>$(BattleTechGameDir)\Mods\.modtek\AssembliesInjected\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass" />
+    <Reference Include="CustomComponents">
+      <HintPath>$(BattleTechGameDir)\Mods\CustomComponents\CustomComponents.dll</HintPath>
+    </Reference>
+    <Reference Include="CustomUnits">
+      <HintPath>$(BattleTechGameDir)\Mods\CustomUnits\CustomUnits.dll</HintPath>
+    </Reference>
+    <Reference Include="Extended_CE">
+      <HintPath>$(BattleTechGameDir)\Mods\BT_Extended_CE\Extended_CE.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

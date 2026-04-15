@@ -1,4 +1,4 @@
-﻿using BattleTech;
+using BattleTech;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -98,6 +98,10 @@ namespace BTX_AdvancedMechLab.Features
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Main.Log.LogException(ex);
+            }
         }
 
         /// <summary>
@@ -134,7 +138,7 @@ namespace BTX_AdvancedMechLab.Features
         }
 
         /// <summary>
-        /// Creates a base mech lab work order for a given MechDef.
+        /// Creates a base mech lab work order for a given mech.
         /// </summary>
         public static WorkOrderEntry_MechLab CreateBaseMechLabOrder(SimGameState simGame, MechDef mech)
         {
@@ -308,13 +312,13 @@ namespace BTX_AdvancedMechLab.Features
             if (totalStructure == 0) return;
 
             var structure = mech.GetStructureInfo();
-            float structureWeight = (tonnage * 0.10f) * structure.WeightMultiplier;
+            float structureWeight = tonnage * 0.10f * structure.WeightMultiplier;
             float costPerTon = 4000f * structure.CBCost;
             float structureCost = structureWeight * costPerTon;
             float costPerPoint = structureCost / totalStructure;
 
             float baseModifier = 1f;
-            var maxLocStructure = mech.GetChassisLocationDef(workOrder.Location).InternalStructure;
+            float maxLocStructure = mech.GetChassisLocationDef(workOrder.Location).InternalStructure;
             if (Mathf.Approximately(workOrder.StructureAmount, maxLocStructure))
             {
                 baseModifier = simGame.Constants.MechLab.ZeroStructureCBillModifier;

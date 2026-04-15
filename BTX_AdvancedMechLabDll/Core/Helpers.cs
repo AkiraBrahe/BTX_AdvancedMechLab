@@ -1,9 +1,8 @@
 using BattleTech;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
-// TODO: Add missing summaries
 
 namespace BTX_AdvancedMechLab.Core
 {
@@ -57,6 +56,53 @@ namespace BTX_AdvancedMechLab.Core
             }
 
             return ArmorData.ArmorTypes[type];
+        }
+
+        #endregion
+
+        #region Mech Properties
+
+        /// <summary>
+        /// Calculates the total internal structure of the given mech.
+        /// </summary>
+        public static float GetTotalStructurePoints(this MechDef mech)
+        {
+            float totalStructure = 0;
+            foreach (var location in Globals.repairPriorities.Values)
+            {
+                totalStructure += mech.GetChassisLocationDef(location).InternalStructure;
+            }
+
+            return totalStructure;
+        }
+
+        /// <summary>
+        /// Calculates the armor percentage of the given mech.
+        /// </summary>
+        public static int GetArmorPercentage(this MechDef mech, out int currentArmor, out int maxArmor)
+        {
+            var chassis = mech.Chassis;
+            if (chassis == null)
+            {
+                currentArmor = 0;
+                maxArmor = 0;
+                return 0;
+            }
+
+            currentArmor = 0;
+            foreach (var location in mech.Locations)
+            {
+                currentArmor += (int)location.AssignedArmor;
+                currentArmor += Mathf.Max((int)location.AssignedRearArmor, 0);
+            }
+
+            maxArmor = 0;
+            foreach (var location in chassis.Locations)
+            {
+                maxArmor += (int)location.MaxArmor; // Includes rear armor
+            }
+
+            return (int)Math.Round((double)currentArmor / maxArmor * 100);
         }
 
         #endregion

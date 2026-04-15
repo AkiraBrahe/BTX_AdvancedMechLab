@@ -1,15 +1,10 @@
-﻿using BattleTech;
+using BattleTech;
 using System.Collections.Generic;
 
 namespace BTX_AdvancedMechLab.Core
 {
     public class Globals
     {
-        /* CURRENT MECH
-         * Static reference to the currently loaded mech in the mech lab.
-         */
-        public static MechDef currentMech = null;
-
         /* TEMP MECHLAB QUEUE
          * Temporary queue to hold post-battle work orders until player confirms they want them processed.
          */

@@ -1,4 +1,4 @@
-﻿namespace BTX_AdvancedMechLab
+namespace BTX_AdvancedMechLab
 {
     public class ModSettings
     {
@@ -10,6 +10,5 @@
         public bool EnableStructureRepair { get; set; } = true;
         public bool EnableAutoRepairPrompt { get; set; } = true;
         public bool AutoRepairMechsWithDestroyedComponents { get; set; } = true;
-
     }
 }

@@ -1,7 +1,6 @@
 using BattleTech;
+using BTX_AdvancedMechLab.Features;
 using System.Linq;
-using UnityEngine;
-using static BTX_AdvancedMechLab.Core.Helpers;
 using static BTX_AdvancedMechLab.Features.Maintenance;
 
 namespace BTX_AdvancedMechLab.Patches
