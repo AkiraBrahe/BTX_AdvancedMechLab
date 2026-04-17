@@ -10,5 +10,6 @@ namespace BTX_AdvancedMechLab
         public bool EnableStructureRepair { get; set; } = true;
         public bool EnableAutoRepairPrompt { get; set; } = true;
         public bool AutoRepairMechsWithDestroyedComponents { get; set; } = true;
+        public float ClanTechRepairCostMultiplier { get; set; } = 1.5f;
     }
 }

@@ -16,7 +16,8 @@
     "ArmorRepair": {
       "EnableStructureRepair": true,
       "EnableAutoRepairPrompt": true,
-      "AutoRepairMechsWithDestroyedComponents": true
+      "AutoRepairMechsWithDestroyedComponents": true,
+      "ClanTechRepairCostMultiplier ": 1.5
     }
   },
 

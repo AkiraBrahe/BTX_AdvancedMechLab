@@ -1,3 +1,4 @@
+using BattleTech;
 using HBS.Logging;
 using Newtonsoft.Json;
 using System;
@@ -21,12 +22,37 @@ namespace BTX_AdvancedMechLab
             {
                 Settings = JsonConvert.DeserializeObject<ModSettings>(settingsJSON) ?? new ModSettings();
                 harmony = new Harmony("com.github.AkiraBrahe.BTX_AdvancedMechLab");
-                harmony.PatchAll(Assembly.GetExecutingAssembly());
+                ApplyHarmonyPatches();
+                SyncQuirkSettings();
                 Log.Log("Mod initialized!");
             }
             catch (Exception ex)
             {
                 Log.LogException(ex);
+            }
+        }
+
+        internal static void ApplyHarmonyPatches()
+        {
+            // --- BEX Quirks ---
+            /* Repair Cost Modifiers */
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(SimGameState), "CreateMechRepairWorkOrder"), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
+            harmony.Unpatch(AccessTools.Constructor(typeof(WorkOrderEntry_RepairMechStructure)), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
+
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
+        }
+
+        internal static void SyncQuirkSettings()
+        {
+            try
+            {
+                var settings = Quirks.MechQuirks.modSettings;
+                if (!settings.ClansDifficultToMaint && !settings.ClansNonStandard)
+                    Settings.ArmorRepair.ClanTechRepairCostMultiplier = 1.0f;
+            }
+            catch (Exception ex)
+            {
+                Log.LogException("Failed to sync BEX Quirks settings.", ex);
             }
         }
     }

@@ -1,4 +1,5 @@
 using BattleTech;
+using Quirks;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -301,8 +302,8 @@ namespace BTX_AdvancedMechLab.Features
         /// <item>Standard structure weight is 10% of the mech tonnage
         /// <br>e.g. 100 ton mech with Standard (Weight=1) = 10 tons, Endo (Weight=0.5) = 5 tons</br></item>
         /// <item>Base cost per ton is 4,000 C-Bills for standard structure
-        /// <br>e.g. Standard (CBCost=1) = 4,000 C-Bills/ton, Endo (CBCost=4) = 16,000 C-Bills/ton</br></item>
-        /// <item>Endo steel costs 48,000 C-Bills per ton (3x markup) before the technology is reintroduced.</item>
+        /// <br>e.g. Standard (CBCost=1) = 4,000 C-Bills/ton, Endo (CBCost=8) = 32,000 C-Bills/ton</br></item>
+        /// <item>Endo steel costs 96,000 C-Bills per ton (3x markup) before the technology is reintroduced.</item>
         /// </list>
         /// </remarks>
         public static void CalculateStructureRepairCost(SimGameState simGame, MechDef mech, WorkOrderEntry_RepairMechStructure workOrder)
@@ -330,8 +331,10 @@ namespace BTX_AdvancedMechLab.Features
                 baseModifier *= 3f;
             }
 
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * structure.TPCost);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.StructureAmount * costPerPoint * baseModifier);
+            GetQuirkModifiers(mech, out float techModifier, out float cbillModifier);
+
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * structure.TPCost * techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.StructureAmount * costPerPoint * baseModifier * cbillModifier);
         }
 
         /// <summary>
@@ -350,9 +353,79 @@ namespace BTX_AdvancedMechLab.Features
         {
             var armor = mech.GetArmorInfo();
             float costMultiplier = armor.CBCost / armor.PptMultiplier;
+            GetQuirkModifiers(mech, out float techModifier, out float cbillModifier);
 
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * armor.TPCost);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier);
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * armor.TPCost * techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier * cbillModifier);
+        }
+
+        /// <summary>
+        /// Gets the quirk modifiers for a given mech based on its chassis tags.
+        /// </summary>
+        /// <remarks>
+        /// Clan mechs get a flat 50% increase in repair costs instead of the standard 25% to make Clan-tech more expensive.
+        /// </remarks>
+        public static void GetQuirkModifiers(MechDef mech, out float techModifier, out float cbillModifier)
+        {
+            try
+            {
+                techModifier = 1f;
+                cbillModifier = 1f;
+
+                if (mech?.Chassis?.ChassisTags == null) return;
+
+                var settings = MechQuirks.modSettings;
+                if (settings == null) return;
+
+                var tags = mech.Chassis.ChassisTags;
+
+                if (tags.Contains("chassis_clan"))
+                {
+                    techModifier *= Main.Settings.ArmorRepair.ClanTechRepairCostMultiplier;
+                    cbillModifier *= Main.Settings.ArmorRepair.ClanTechRepairCostMultiplier;
+                }
+                if (tags.Contains("mech_quirk_rugged1"))
+                {
+                    techModifier *= (settings.RuggedTechModifier + 100f) / 100f;
+                    cbillModifier *= (settings.RuggedCostModifier + 100f) / 100f;
+                }
+
+                if (tags.Contains("mech_quirk_rugged2"))
+                {
+                    techModifier *= ((settings.RuggedTechModifier * 2f) + 100f) / 100f;
+                    cbillModifier *= ((settings.RuggedCostModifier * 2f) + 100f) / 100f;
+                }
+
+                if (tags.Contains("mech_quirk_easytomaintain"))
+                {
+                    techModifier *= (settings.EasyToMaintTechModifier + 100f) / 100f;
+                    cbillModifier *= (settings.EasyToMaintCostModifier + 100f) / 100f;
+                }
+
+                if (tags.Contains("mech_quirk_difficulttomaintain"))
+                {
+                    techModifier *= (settings.DifficultToMaintTechModifier + 100f) / 100f;
+                    cbillModifier *= (settings.DifficultToMaintCostModifier + 100f) / 100f;
+                }
+
+                if (tags.Contains("mech_quirk_nonstandardparts"))
+                {
+                    techModifier *= (settings.NonStandardTechModifier + 100f) / 100f;
+                    cbillModifier *= (settings.NonStandardCostModifier + 100f) / 100f;
+                }
+
+                if (tags.Contains("mech_quirk_prototype"))
+                {
+                    techModifier *= (settings.PrototypeTechModifier + 100f) / 100f;
+                    cbillModifier *= (settings.PrototypeCostModifier + 100f) / 100f;
+                }
+            }
+            catch (Exception ex)
+            {
+                Main.Log.LogException(ex);
+                techModifier = 1f;
+                cbillModifier = 1f;
+            }
         }
 
         #endregion

@@ -72,7 +72,7 @@ namespace BTX_AdvancedMechLab.Core
                 ProductionDate = new DateTime(3040, 1, 1),
                 WeightMultiplier = 0.5f,
                 TPCost = 1.5f,
-                CBCost = 4f // 16,000 C-Bills per ton (48,000 C-Bills per ton before 3040)
+                CBCost = 8f // 32,000 C-Bills per ton (96,000 C-Bills per ton before 3040)
             } },
             { StructureType.Composite, new StructureInfo {
                 Name = "Composite",
@@ -83,7 +83,7 @@ namespace BTX_AdvancedMechLab.Core
                 ProductionDate = new DateTime(3061, 1, 1),
                 WeightMultiplier = 0.5f,
                 TPCost = 1.5f,
-                CBCost = 4f // 16,000 C-Bills per ton
+                CBCost = 8f // 32,000 C-Bills per ton
             } },
             { StructureType.Reinforced, new StructureInfo {
                 Name = "Reinforced",
@@ -94,7 +94,7 @@ namespace BTX_AdvancedMechLab.Core
                 ProductionDate = new DateTime(3057, 1, 1),
                 WeightMultiplier = 2f,
                 TPCost = 1.5f,
-                CBCost = 16f // 64,000 C-Bills per ton
+                CBCost = 8f // 32,000 C-Bills per ton
             } }
         };
         // Note: Costs are scaled for a 100-ton mech.

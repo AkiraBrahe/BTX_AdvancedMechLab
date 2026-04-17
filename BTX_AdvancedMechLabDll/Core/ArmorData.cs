@@ -106,8 +106,8 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = DateTime.MaxValue,
                 ProductionDate = DateTime.MaxValue,
                 PptMultiplier = 1.2f,
-                TPCost = 1.75f,
-                CBCost = 6f // 60,000 C-Bills per ton (3x markup)
+                TPCost = 1.5f, // 2.25x with default setting
+                CBCost = 2f // 30,000 C-Bills per ton with default setting
             } },
             { ArmorType.Hardened, new ArmorInfo {
                 Name = "Hardened",
