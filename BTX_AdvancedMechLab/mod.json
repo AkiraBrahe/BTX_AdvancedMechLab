@@ -15,6 +15,7 @@
   "Settings": {
     "ArmorRepair": {
       "EnableStructureRepair": true,
+      "EnableTonnageRepairScaling": true,
       "EnableAutoRepairPrompt": true,
       "AutoRepairMechsWithDestroyedComponents": true,
       "ClanTechRepairCostMultiplier ": 1.5

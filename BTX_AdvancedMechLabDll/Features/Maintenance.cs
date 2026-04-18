@@ -294,47 +294,66 @@ namespace BTX_AdvancedMechLab.Features
 
         #region Cost Calculations
 
+        private static string _lastMechGUID;
+        private static float _totalStructure;
+        private static float _techModifier;
+        private static float _cbillModifier;
+        private static StructureData.StructureInfo _structure;
+        private static ArmorData.ArmorInfo _armor;
+
         /// <summary>
         /// Calculates the structure repair cost for a given mech using tabletop rules.
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item>Standard structure weight is 10% of the mech tonnage
-        /// <br>e.g. 100 ton mech with Standard (Weight=1) = 10 tons, Endo (Weight=0.5) = 5 tons</br></item>
-        /// <item>Base cost per ton is 4,000 C-Bills for standard structure
-        /// <br>e.g. Standard (CBCost=1) = 4,000 C-Bills/ton, Endo (CBCost=8) = 32,000 C-Bills/ton</br></item>
-        /// <item>Endo steel costs 96,000 C-Bills per ton (3x markup) before the technology is reintroduced.</item>
+        /// <item>Standard structure weight is 10% of the mech tonnage. Base cost per ton is 4,000 C-Bills for standard structure
+        /// <br>e.g. 100 ton mech with Standard (Weight=1 and CBCost=1) = 40,000 C-Bills, Endo (Weight=0.5 and CBCost=8) = 160,000 C-Bills.</br></item>
+        /// <item>Endo steel costs 96,000 C-Bills per ton (3x markup) before the technology is reintroduced in 3040, and 32,000 C-Bills per ton afterwards.</item>
         /// </list>
         /// </remarks>
         public static void CalculateStructureRepairCost(SimGameState simGame, MechDef mech, WorkOrderEntry_RepairMechStructure workOrder)
         {
+            if (mech.GUID != _lastMechGUID)
+            {
+                _lastMechGUID = mech.GUID;
+                _totalStructure = mech.GetTotalStructurePoints();
+                _structure = mech.GetStructureInfo();
+                _armor = mech.GetArmorInfo();
+                GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);
+            }
+
+            if (_totalStructure == 0) return;
+
             float tonnage = mech.Chassis.Tonnage;
-            float totalStructure = mech.GetTotalStructurePoints();
-            if (totalStructure == 0) return;
-
-            var structure = mech.GetStructureInfo();
-            float structureWeight = tonnage * 0.10f * structure.WeightMultiplier;
-            float costPerTon = 4000f * structure.CBCost;
+            float structureWeight = tonnage * 0.10f * _structure.WeightMultiplier;
+            float costPerTon = 4000f * _structure.CBCost;
             float structureCost = structureWeight * costPerTon;
-            float costPerPoint = structureCost / totalStructure;
+            float costPerPoint = structureCost / _totalStructure;
 
-            float baseModifier = 1f;
+            float techModifier = _techModifier;
+            float cbillModifier = _cbillModifier;
+
             float maxLocStructure = mech.GetChassisLocationDef(workOrder.Location).InternalStructure;
             if (Mathf.Approximately(workOrder.StructureAmount, maxLocStructure))
             {
-                baseModifier = simGame.Constants.MechLab.ZeroStructureCBillModifier;
+                techModifier = simGame.Constants.MechLab.ZeroStructureTechPointModifier;
+                cbillModifier = simGame.Constants.MechLab.ZeroStructureCBillModifier;
             }
 
             var currentDate = simGame.CurrentDate;
-            if (structure.Name == "Endo Steel" && currentDate < new DateTime(3040, 1, 1))
+            if (_structure.Name == "Endo Steel" && currentDate < new DateTime(3040, 1, 1))
             {
-                baseModifier *= 3f;
+                cbillModifier *= 3f;
             }
 
-            GetQuirkModifiers(mech, out float techModifier, out float cbillModifier);
+            if (Main.Settings.ArmorRepair.EnableTonnageRepairScaling)
+            {
+                float tonnageFactor = Mathf.InverseLerp(20f, 100f, tonnage);
+                techModifier *= Mathf.Lerp(1f, 4f, tonnageFactor);
+            }
 
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * structure.TPCost * techModifier);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.StructureAmount * costPerPoint * baseModifier * cbillModifier);
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _structure.TPCost * techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.StructureAmount * costPerPoint * cbillModifier);
         }
 
         /// <summary>
@@ -351,12 +370,27 @@ namespace BTX_AdvancedMechLab.Features
         /// </remarks>
         public static void CalculateArmorRepairCost(MechDef mech, WorkOrderEntry_ModifyMechArmor workOrder)
         {
-            var armor = mech.GetArmorInfo();
-            float costMultiplier = armor.CBCost / armor.PptMultiplier;
-            GetQuirkModifiers(mech, out float techModifier, out float cbillModifier);
+            if (mech.GUID != _lastMechGUID)
+            {
+                _lastMechGUID = mech.GUID;
+                _totalStructure = mech.GetTotalStructurePoints();
+                _structure = mech.GetStructureInfo();
+                _armor = mech.GetArmorInfo();
+                GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);
+            }
 
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * armor.TPCost * techModifier);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier * cbillModifier);
+            float techModifier = _techModifier;
+            float costMultiplier = _armor.CBCost / _armor.PptMultiplier;
+
+            if (Main.Settings.ArmorRepair.EnableTonnageRepairScaling)
+            {
+                float tonnage = mech.Chassis.Tonnage;
+                float tonnageFactor = Mathf.InverseLerp(20f, 100f, tonnage);
+                techModifier *= Mathf.Lerp(1f, 4f, tonnageFactor);
+            }
+
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _armor.TPCost * techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier * _cbillModifier);
         }
 
         /// <summary>
