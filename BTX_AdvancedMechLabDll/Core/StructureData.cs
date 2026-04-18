@@ -71,7 +71,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3035, 1, 1),
                 ProductionDate = new DateTime(3040, 1, 1),
                 WeightMultiplier = 0.5f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 8f // 32,000 C-Bills per ton (96,000 C-Bills per ton before 3040)
             } },
             { StructureType.Composite, new StructureInfo {
@@ -82,7 +82,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3054, 1, 1),
                 ProductionDate = new DateTime(3061, 1, 1),
                 WeightMultiplier = 0.5f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 8f // 32,000 C-Bills per ton
             } },
             { StructureType.Reinforced, new StructureInfo {
@@ -93,7 +93,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3055, 1, 1),
                 ProductionDate = new DateTime(3057, 1, 1),
                 WeightMultiplier = 2f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 8f // 32,000 C-Bills per ton
             } }
         };

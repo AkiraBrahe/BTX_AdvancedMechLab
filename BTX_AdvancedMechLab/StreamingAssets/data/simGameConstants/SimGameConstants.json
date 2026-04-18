@@ -1,6 +1,6 @@
 {
   "MechLab": {
-    "StructureRepairTechPoints": 20,
+    "StructureRepairTechPoints": 50,
     "StructureRepairCost": 300,
     "ArmorInstallTechPoints": 10,
     "ArmorInstallCost": 125

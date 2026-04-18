@@ -118,7 +118,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3047, 1, 1),
                 ProductionDate = new DateTime(3081, 1, 1),
                 PptMultiplier = 1f, // Simplified logic
-                TPCost = 1.5f,
+                TPCost = 2.5f,
                 CBCost = 1.5f // 15,000 C-Bills per ton
             } },
             { ArmorType.Stealth, new ArmorInfo {
@@ -130,7 +130,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3051, 1, 1),
                 ProductionDate = new DateTime(3063, 1, 1),
                 PptMultiplier = 1f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 5f // 50,000 C-Bills per ton
             } },
             { ArmorType.LightFerro, new ArmorInfo {
@@ -154,7 +154,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3056, 1, 1),
                 ProductionDate = new DateTime(3069, 1, 1),
                 PptMultiplier = 1.24f,
-                TPCost = 1.25f,
+                TPCost = 1.75f,
                 CBCost = 2.5f // 25,000 C-Bills per ton
             } },
             { ArmorType.Reflective, new ArmorInfo {
@@ -166,7 +166,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3058, 1, 1),
                 ProductionDate = new DateTime(3080, 1, 1),
                 PptMultiplier = 1f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 3f // 30,000 C-Bills per ton
             } },
             { ArmorType.Reactive, new ArmorInfo {
@@ -178,7 +178,7 @@ namespace BTX_AdvancedMechLab.Core
                 IntroDate = new DateTime(3063, 1, 1),
                 ProductionDate = new DateTime(3081, 1, 1),
                 PptMultiplier = 1f,
-                TPCost = 1.5f,
+                TPCost = 2f,
                 CBCost = 3f // 30,000 C-Bills per ton
             } },
         };
