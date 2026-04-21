@@ -2,9 +2,9 @@ using BattleTech;
 using BattleTech.UI.TMProWrapper;
 using BattleTech.UI.Tooltips;
 using UnityEngine;
-using static BTX_AdvancedMechLab.Features.HeatSinkManager;
+using static BTX_AdvancedMechLab.Features.EngineHeatSinks.HeatSinkManager;
 
-namespace BTX_AdvancedMechLab.Features.Widgets
+namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 {
     public class CoolingWidget : MonoBehaviour
     {

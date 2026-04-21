@@ -5,8 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace BTX_AdvancedMechLab.Features
+namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 {
+    /// <summary>
+    /// Handles heat sink management for engines.
+    /// </summary>
     public static class HeatSinkManager
     {
         #region Engine Specs
@@ -64,13 +67,8 @@ namespace BTX_AdvancedMechLab.Features
                 { "Gear_XXL_Engine", "XXL Fusion" },
             };
 
-        private static Dictionary<string, EngineSpecs> _cache = [];
-
-        public static EngineSpecs GetEngineSpecs(ChassisDef chassis)
+        public static EngineSpecs GetEngineSpecs(ChassisDef chassis, string coolingType = null)
         {
-            if (_cache.TryGetValue(chassis.Description.Id, out var specs))
-                return specs;
-
             int.TryParse(System.Text.RegularExpressions.Regex.Match(chassis.movementCapDefID, @"\d+$").Value, out int walkMp);
             int rating = (int)chassis.Tonnage * walkMp;
             int maxInternal = (int)Mathf.Floor(rating / 25);
@@ -78,7 +76,11 @@ namespace BTX_AdvancedMechLab.Features
             int additionalSlots = Mathf.Max(0, maxInternal - 10);
 
             var hsType = EngineHSType.Single;
-            if (chassis.ChassisTags.Contains("chassis_DHS"))
+            if (!string.IsNullOrEmpty(coolingType))
+            {
+                Enum.TryParse<EngineHSType>(coolingType, out hsType);
+            }
+            else if (chassis.ChassisTags.Contains("chassis_DHS"))
             {
                 hsType = chassis.ChassisTags.Contains("chassis_clan") ? EngineHSType.ClanDouble : EngineHSType.Double;
             }
@@ -90,7 +92,7 @@ namespace BTX_AdvancedMechLab.Features
                 {
                     if (EngineIDs.TryGetValue(item.ComponentDefID, out string type))
                     {
-                        specs = new EngineSpecs
+                        return new EngineSpecs
                         {
                             Type = type,
                             Rating = rating,
@@ -99,13 +101,11 @@ namespace BTX_AdvancedMechLab.Features
                             AdditionalSlots = additionalSlots,
                             HSType = hsType
                         };
-                        _cache[chassis.Description.Id] = specs;
-                        return specs;
                     }
                 }
             }
 
-            specs = new EngineSpecs
+            return new EngineSpecs()
             {
                 Type = "Fusion",
                 Rating = rating,
@@ -114,8 +114,6 @@ namespace BTX_AdvancedMechLab.Features
                 AdditionalSlots = additionalSlots,
                 HSType = hsType
             };
-            _cache[chassis.Description.Id] = specs;
-            return specs;
         }
 
         #endregion

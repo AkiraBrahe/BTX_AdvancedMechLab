@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BTX_AdvancedMechLab.Core
+namespace BTX_AdvancedMechLab.Core.Data
 {
     public class ArmorData
     {

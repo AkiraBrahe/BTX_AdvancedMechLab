@@ -3,7 +3,7 @@ using BattleTech.UI.TMProWrapper;
 using BattleTech.UI.Tooltips;
 using UnityEngine;
 
-namespace BTX_AdvancedMechLab.Features.Widgets
+namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 {
     public class ArmorWidget : MonoBehaviour
     {
@@ -18,15 +18,15 @@ namespace BTX_AdvancedMechLab.Features.Widgets
 
         public void Refresh(MechDef mech)
         {
-            var specs = mech.GetArmorInfo();
+            var armor = mech.GetArmorInfo();
 
-            _label.SetText($"{specs.Name}");
+            _label.SetText($"{armor.Name}");
 
             int percent = mech.GetArmorPercentage(out int currentArmor, out int maxArmor);
-            string description = $"<b>Current Armor: <color=#85DBF6>{specs.Name} Armor</color></b>";
+            string description = $"<b>Current Armor: <color=#85DBF6>{armor.Name} Armor</color></b>";
             description += $"\n<b>Amount: <color=#85DBF6>{currentArmor}/{maxArmor} ({percent}%)</color></b>";
             description += "\n\nA 'Mech's armor is primordial to protect its internals in combat. ";
-            description += specs.Description;
+            description += armor.Description;
 
             // TODO: Add logic to check inventory for armor scraps
             // description += $"\n\nAvailable in Inventory:";
