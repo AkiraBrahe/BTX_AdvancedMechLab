@@ -13,6 +13,7 @@
   "DLL": "BTX_AdvancedMechLab.dll",
 
   "Settings": {
+    "Debug": false,
     "ArmorRepair": {
       "EnableStructureRepair": true,
       "EnableTonnageRepairScaling": true,

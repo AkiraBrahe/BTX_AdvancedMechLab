@@ -16,11 +16,11 @@ namespace BTX_AdvancedMechLab
         public static void Init(string directory, string settingsJSON)
         {
             modDir = directory;
-            Log = Logger.GetLogger("BTX_AdvancedMechLab", LogLevel.Debug);
+            Settings = JsonConvert.DeserializeObject<ModSettings>(settingsJSON) ?? new ModSettings();
+            Log = Logger.GetLogger("BTX_AdvancedMechLab", Settings.Debug ? LogLevel.Debug : LogLevel.Log);
 
             try
             {
-                Settings = JsonConvert.DeserializeObject<ModSettings>(settingsJSON) ?? new ModSettings();
                 harmony = new Harmony("com.github.AkiraBrahe.BTX_AdvancedMechLab");
                 ApplyHarmonyPatches();
                 SyncQuirkSettings();
@@ -49,10 +49,12 @@ namespace BTX_AdvancedMechLab
                 var settings = Quirks.MechQuirks.modSettings;
                 if (!settings.ClansDifficultToMaint && !settings.ClansNonStandard)
                     Settings.ArmorRepair.ClanTechRepairCostMultiplier = 1.0f;
+                if (!settings.ExtraTonnageRepairScaling)
+                    Settings.ArmorRepair.EnableTonnageRepairScaling = false;
             }
             catch (Exception ex)
             {
-                Log.LogException("Failed to sync BEX Quirks settings.", ex);
+                Log.LogException(ex);
             }
         }
     }

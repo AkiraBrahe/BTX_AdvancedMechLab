@@ -7,8 +7,7 @@
       "autorepair",
       "no_remove",
       "no_salvage",
-      "hide",
-      "inv_unlimited"
+      "hide"
     ],
     "Sorter": 1
   },

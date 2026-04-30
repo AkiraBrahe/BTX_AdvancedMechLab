@@ -17,7 +17,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
-    <OutputPath>..\</OutputPath>
     <OutputPath>..\$(AssemblyName)\</OutputPath>
   </PropertyGroup>
   <Target Name="CopyDLLToModFolder" AfterTargets="Build">
@@ -30,6 +29,7 @@
     </PackageReference>
     <PackageReference Include="Krafs.Publicizer" Version="2.3.0" />
     <Publicize Include="Assembly-CSharp" />
+    <Publicize Include="MechQuirks" />
   </ItemGroup>
   <ItemDefinitionGroup>
     <Reference>
@@ -55,6 +55,9 @@
     </Reference>
     <Reference Include="LootMagnet">
       <HintPath>$(BattleTechGameDir)\Mods\LootMagnet\LootMagnet.dll</HintPath>
+    </Reference>
+    <Reference Include="MechQuirks">
+      <HintPath>$(BattleTechGameDir)\Mods\BT_Extended_Quirks\MechQuirks.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json" />
     <Reference Include="System" />

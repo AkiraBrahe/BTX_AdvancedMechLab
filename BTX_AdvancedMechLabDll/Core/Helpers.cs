@@ -1,4 +1,5 @@
 using BattleTech;
+using CustomComponents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,15 +12,16 @@ namespace BTX_AdvancedMechLab.Core
         #region Data Extensions
 
         /// <summary>
-        /// Retrieves the StructureInfo for the given mech.
+        /// Retrieves the structure info of a mech.
         /// </summary>
-        public static StructureData.StructureInfo GetStructureInfo(this MechDef mech)
+        public static StructureInfo GetStructureInfo(this MechDef mech)
         {
-            var type = StructureData.StructureType.Standard;
+            var type = StructureType.Standard;
+            bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
 
             foreach (string tag in mech.Chassis.ChassisTags)
             {
-                var match = StructureData.StructureTypes.FirstOrDefault(st => st.Value.Tag == tag);
+                var match = StructureTypes.FirstOrDefault(st => st.Value.Tag == tag);
                 if (!string.IsNullOrEmpty(match.Value.Name))
                 {
                     type = match.Key;
@@ -27,35 +29,42 @@ namespace BTX_AdvancedMechLab.Core
                 }
             }
 
-            return StructureData.StructureTypes[type];
+            if (isClan && type == StructureType.EndoSteel)
+                type = StructureType.ClanEndoSteel;
+
+            return StructureTypes[type];
         }
 
         /// <summary>
-        /// Retrieves the ArmorInfo for the given mech.
+        /// Retrieves the armor info of a mech.
         /// </summary>
-        public static ArmorData.ArmorInfo GetArmorInfo(this MechDef mech)
+        public static ArmorInfo GetArmorInfo(this MechDef mech)
         {
-            var type = ArmorData.ArmorType.Standard;
+            var type = ArmorType.Standard;
 
             if (!string.IsNullOrEmpty(mech.ArmorType))
             {
-                if (Enum.TryParse<ArmorData.ArmorType>(mech.ArmorType, out var result))
+                if (Enum.TryParse<ArmorType>(mech.ArmorType, out var result))
                     type = result;
             }
             else
             {
+                bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
                 foreach (string tag in mech.Chassis.ChassisTags)
                 {
-                    var match = ArmorData.ArmorTypes.FirstOrDefault(at => at.Value.Tag == tag);
+                    var match = ArmorTypes.FirstOrDefault(at => at.Value.Tag == tag);
                     if (!string.IsNullOrEmpty(match.Value.Name))
                     {
                         type = match.Key;
                         break;
                     }
                 }
+
+                if (isClan && type == ArmorType.FerroFibrous)
+                    type = ArmorType.ClanFerroFibrous;
             }
 
-            return ArmorData.ArmorTypes[type];
+            return ArmorTypes[type];
         }
 
         #endregion
@@ -65,12 +74,12 @@ namespace BTX_AdvancedMechLab.Core
         /// <summary>
         /// Calculates the total internal structure of a mech.
         /// </summary>
-        public static float GetTotalStructurePoints(this MechDef mech)
+        public static int GetTotalStructurePoints(this MechDef mech)
         {
-            float totalStructure = 0;
-            foreach (var location in Globals.repairPriorities.Values)
+            int totalStructure = 0;
+            foreach (var location in mech.Chassis.Locations)
             {
-                totalStructure += mech.GetChassisLocationDef(location).InternalStructure;
+                totalStructure += (int)location.InternalStructure;
             }
 
             return totalStructure;
@@ -125,7 +134,7 @@ namespace BTX_AdvancedMechLab.Core
         #region Location Properties
 
         /// <summary>
-        /// Evaluates whether a given chassis location has rear armor.
+        /// Evaluates whether a chassis location has rear armor.
         /// </summary>
         public static bool HasRearArmor(this LocationDef chassisLocationDef) =>
             chassisLocationDef.Location is ChassisLocations.CenterTorso or

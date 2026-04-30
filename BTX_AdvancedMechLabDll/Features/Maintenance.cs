@@ -298,8 +298,8 @@ namespace BTX_AdvancedMechLab.Features
         private static float _totalStructure;
         private static float _techModifier;
         private static float _cbillModifier;
-        private static StructureData.StructureInfo _structure;
-        private static ArmorData.ArmorInfo _armor;
+        private static StructureInfo _structure;
+        private static ArmorInfo _armor;
 
         /// <summary>
         /// Calculates the structure repair cost for a given mech using tabletop rules.
@@ -341,7 +341,7 @@ namespace BTX_AdvancedMechLab.Features
             }
 
             var currentDate = simGame.CurrentDate;
-            if (_structure.Name == "Endo Steel" && currentDate < new DateTime(3040, 1, 1))
+            if (_structure.Type == StructureType.EndoSteel && currentDate < new DateTime(3040, 1, 1))
             {
                 cbillModifier *= 3f;
             }
@@ -418,6 +418,7 @@ namespace BTX_AdvancedMechLab.Features
                     techModifier *= Main.Settings.ArmorRepair.ClanTechRepairCostMultiplier;
                     cbillModifier *= Main.Settings.ArmorRepair.ClanTechRepairCostMultiplier;
                 }
+
                 if (tags.Contains("mech_quirk_rugged1"))
                 {
                     techModifier *= (settings.RuggedTechModifier + 100f) / 100f;
