@@ -136,6 +136,26 @@ namespace BTX_AdvancedMechLab.Patches
 
     #endregion
 
+    #region Mech Bay
+
+    /// <summary>
+    /// Converts armor to scrap items when scraping a mech with non-standard armor.
+    /// </summary>
+    [HarmonyPatch(typeof(SimGameState), "ScrapActiveMech", typeof(int), typeof(MechDef))]
+    public static class SimGameState_ScrapActiveMech
+    {
+        [HarmonyPostfix]
+        public static void Postfix(MechDef def)
+        {
+            var sim = UnityGameInstance.BattleTechGame.Simulation;
+            if (sim == null) return;
+
+            ScrapManager.ConvertArmorToScraps(def, sim);
+        }
+    }
+
+    #endregion
+
     #region Technical Fixes
 
     /// <summary>

@@ -63,7 +63,7 @@ namespace BTX_AdvancedMechLab.Core
         #region Mech Properties
 
         /// <summary>
-        /// Calculates the total internal structure of the given mech.
+        /// Calculates the total internal structure of a mech.
         /// </summary>
         public static float GetTotalStructurePoints(this MechDef mech)
         {
@@ -77,7 +77,22 @@ namespace BTX_AdvancedMechLab.Core
         }
 
         /// <summary>
-        /// Calculates the armor percentage of the given mech.
+        /// Calculates the total armor weight in tons of a mech.
+        /// </summary>
+        public static float GetTotalArmorWeight(this MechDef mech, ArmorInfo armor)
+        {
+            int totalArmor = 0;
+            foreach (var location in mech.Locations)
+            {
+                totalArmor += (int)location.AssignedArmor;
+                totalArmor += Mathf.Max((int)location.AssignedRearArmor, 0);
+            }
+
+            return totalArmor / (80 * armor.PptMultiplier);
+        }
+
+        /// <summary>
+        /// Calculates the current armor percentage of a mech.
         /// </summary>
         public static int GetArmorPercentage(this MechDef mech, out int currentArmor, out int maxArmor)
         {

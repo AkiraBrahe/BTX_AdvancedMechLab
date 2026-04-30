@@ -1,0 +1,38 @@
+{
+  "Custom": {
+    "Category": {
+      "CategoryID": "Scrap"
+    }
+  },
+  "StatName": null,
+  "RelativeModifier": 0,
+  "AbsoluteModifier": 0,
+  "Description": {
+    "Cost": 25000,
+    "Rarity": 0,
+    "Purchasable": true,
+    "Manufacturer": "Varied",
+    "Model": "Armor Scrap",
+    "UIName": "Heavy Ferro-Fibrous Armor",
+    "Id": "Lootable_Armor_HeavyFerro",
+    "Name": "Heavy Ferro-Fibrous Armor",
+    "Details": "A heavy-duty variation of standard Ferro-Fibrous armor. By using a much denser weave of specialized fibers, it provides a superior 24% increase in protection per ton over standard plating, though it is considerably bulkier than standard ferro.",
+    "Icon": "uixSvgIcon_action_end"
+  },
+  "BonusValueA": "",
+  "BonusValueB": "",
+  "ComponentType": "Upgrade",
+  "ComponentSubType": "NotSet",
+  "PrefabIdentifier": "",
+  "BattleValue": 0,
+  "InventorySize": 0,
+  "Tonnage": 1,
+  "AllowedLocations": "None",
+  "DisallowedLocations": "None",
+  "CriticalComponent": false,
+  "statusEffects": [],
+  "ComponentTags": {
+    "items": [],
+    "tagSetSourceFile": ""
+  }
+}

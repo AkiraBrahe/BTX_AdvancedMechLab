@@ -1,0 +1,38 @@
+{
+  "Custom": {
+    "Category": {
+      "CategoryID": "Scrap"
+    }
+  },
+  "StatName": null,
+  "RelativeModifier": 0,
+  "AbsoluteModifier": 0,
+  "Description": {
+    "Cost": 15000,
+    "Rarity": 0,
+    "Purchasable": true,
+    "Manufacturer": "Varied",
+    "Model": "Armor Scrap",
+    "UIName": "Light Ferro-Fibrous Armor",
+    "Id": "Lootable_Armor_LightFerro",
+    "Name": "Light Ferro-Fibrous Armor",
+    "Details": "A lighter variation of standard Ferro-Fibrous armor. By utilizing a less dense fiber weave, it provides a 6% increase in protection per ton over standard plating while requiring less internal space than standard ferro.",
+    "Icon": "uixSvgIcon_action_end"
+  },
+  "BonusValueA": "",
+  "BonusValueB": "",
+  "ComponentType": "Upgrade",
+  "ComponentSubType": "NotSet",
+  "PrefabIdentifier": "",
+  "BattleValue": 0,
+  "InventorySize": 0,
+  "Tonnage": 1,
+  "AllowedLocations": "None",
+  "DisallowedLocations": "None",
+  "CriticalComponent": false,
+  "statusEffects": [],
+  "ComponentTags": {
+    "items": [],
+    "tagSetSourceFile": ""
+  }
+}

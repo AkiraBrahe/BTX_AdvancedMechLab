@@ -8,7 +8,7 @@
   "Website": "https://github.com/AkiraBrahe/BTX_AdvancedMechLab",
 
   "ConflictsWith": [ "ArmorRepair" ],
-  "DependsOn": [ "BTX_ExpansionPack" ],
+  "DependsOn": [ "BTX_ExpansionPack", "LootMagnet" ],
 
   "DLL": "BTX_AdvancedMechLab.dll",
 
@@ -19,10 +19,15 @@
       "EnableAutoRepairPrompt": true,
       "AutoRepairMechsWithDestroyedComponents": true,
       "ClanTechRepairCostMultiplier ": 1.5
+    },
+    "ArmorSalvage": {
+      "EnableArmorStackLimit": true,
+      "MaxTonsPerStack": 10
     }
   },
 
   "Manifest": [
-    { "Type": "HeatSinkDef", "Path": "heatsinks" }
+    { "Type": "HeatSinkDef", "Path": "heatsinks" },
+    { "Type": "UpgradeDef", "Path": "upgrades", "AddToDB": true }
   ]
 }

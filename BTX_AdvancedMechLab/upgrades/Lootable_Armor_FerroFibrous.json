@@ -1,0 +1,38 @@
+{
+  "Custom": {
+    "Category": {
+      "CategoryID": "Scrap"
+    }
+  },
+  "StatName": null,
+  "RelativeModifier": 0,
+  "AbsoluteModifier": 0,
+  "Description": {
+    "Cost": 20000,
+    "Rarity": 0,
+    "Purchasable": true,
+    "Manufacturer": "Varied",
+    "Model": "Armor Scrap",
+    "UIName": "Scrap (Ferro-Fibrous)",
+    "Id": "Lootable_Armor_FerroFibrous",
+    "Name": "Ferro-Fibrous Armor",
+    "Details": "Ferro-Fibrous armor uses a weave of ferro-steel, ferro-titanium, and diamond-weave fibers which boosts the tensile strength of the plating, providing a 12% increase in protection per ton over standard armor, but taking up more space on the 'Mech.",
+    "Icon": "uixSvgIcon_action_end"
+  },
+  "BonusValueA": "",
+  "BonusValueB": "",
+  "ComponentType": "Upgrade",
+  "ComponentSubType": "NotSet",
+  "PrefabIdentifier": "",
+  "BattleValue": 0,
+  "InventorySize": 0,
+  "Tonnage": 1,
+  "AllowedLocations": "None",
+  "DisallowedLocations": "None",
+  "CriticalComponent": false,
+  "statusEffects": [],
+  "ComponentTags": {
+    "items": [],
+    "tagSetSourceFile": ""
+  }
+}
