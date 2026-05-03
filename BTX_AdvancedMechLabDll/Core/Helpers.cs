@@ -141,6 +141,25 @@ namespace BTX_AdvancedMechLab.Core
                                            ChassisLocations.LeftTorso or
                                            ChassisLocations.RightTorso;
 
+
+        /// <summary>
+        /// Determines the number of free inventory slots in a location.
+        /// </summary>
+        public static int GetFreeSlotsInLoc(this MechDef mech, IEnumerable<MechComponentRef> inventory, ChassisLocations location) =>
+            mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location).Sum(i => i.Def.InventorySize);
+
+        /// <summary>
+        /// Determines the number of free inventory slots in a location, taking into account the size of the item being added.
+        /// </summary>
+        public static int GetFreeSlotsInLoc(this MechDef mech, IEnumerable<MechComponentRef> inventory, ChassisLocations location, int size) =>
+            (mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location).Sum(i => i.Def.InventorySize)) / size;
+
+        /// <summary>
+        /// Determines the number of free inventory slots in a location, excluding a specific category.
+        /// </summary
+        public static int GetFreeSlotsInLoc(this MechDef mech, IEnumerable<MechComponentRef> inventory, ChassisLocations location, string excludedCategory) =>
+            mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location && !i.IsCategory(excludedCategory)).Sum(i => i.Def.InventorySize);
+
         #endregion
     }
 }

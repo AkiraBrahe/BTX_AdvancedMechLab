@@ -23,6 +23,7 @@ namespace BTX_AdvancedMechLab
             {
                 harmony = new Harmony("com.github.AkiraBrahe.BTX_AdvancedMechLab");
                 ApplyHarmonyPatches();
+                RegisterAutoFixers();
                 SyncQuirkSettings();
                 Log.Log("Mod initialized!");
             }
@@ -40,6 +41,12 @@ namespace BTX_AdvancedMechLab
             harmony.Unpatch(AccessTools.Constructor(typeof(WorkOrderEntry_RepairMechStructure)), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
 
             harmony.PatchAll(Assembly.GetExecutingAssembly());
+        }
+
+        internal static void RegisterAutoFixers()
+        {
+            Features.Armor.ArmorAutoFixer.Register();
+            Features.EngineHeatSinks.HeatSinkAutoFixer.Register();
         }
 
         internal static void SyncQuirkSettings()
