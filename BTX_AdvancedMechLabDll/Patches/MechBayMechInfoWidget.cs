@@ -15,15 +15,15 @@ namespace BTX_AdvancedMechLab.Patches
     public static class MechBayMechInfoWidget_OnScrapClicked
     {
         [HarmonyPrefix]
-        public static void Prefix(ref bool __runOriginal, MechBayMechInfoWidget __instance)
+        public static bool Prefix(ref bool __runOriginal, MechBayMechInfoWidget __instance)
         {
             if (!__runOriginal || __instance.selectedMech == null)
-                return;
+                return false;
 
             if (__instance.selectedMechElement.inMaintenance)
             {
                 GenericPopupBuilder.Create("Cannot Scrap BattleMech", Strings.T("This 'Mech is already under maintenance. You must first cancel the existing task in order to scrap this 'Mech.")).AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
-                return;
+                return false;
             }
 
             // string nameString = __instance.selectedMech.Description.Name;
@@ -47,6 +47,8 @@ namespace BTX_AdvancedMechLab.Patches
                     .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true)
                     .Render();
             }
+
+            return false;
         }
     }
 }

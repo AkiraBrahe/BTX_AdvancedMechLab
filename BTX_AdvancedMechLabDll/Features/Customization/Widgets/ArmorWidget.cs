@@ -12,7 +12,7 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 
         private void Awake()
         {
-            _label = GetComponentInChildren<LocalizableText>();
+            _label = GetComponentInChildren<LocalizableText>(true);
             _tooltip = GetComponent<HBSTooltip>();
         }
 

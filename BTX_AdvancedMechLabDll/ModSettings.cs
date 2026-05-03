@@ -2,6 +2,7 @@ namespace BTX_AdvancedMechLab
 {
     public class ModSettings
     {
+        public bool Debug { get; set; } = false;
         public ArmorRepairSettings ArmorRepair { get; set; } = new ArmorRepairSettings();
         public ArmorSalvageSettings ArmorSalvage { get; set; } = new ArmorSalvageSettings();
     }

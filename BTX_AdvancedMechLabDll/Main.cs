@@ -1,4 +1,5 @@
 using BattleTech;
+using BattleTech.UI;
 using HBS.Logging;
 using Newtonsoft.Json;
 using System;
@@ -24,6 +25,7 @@ namespace BTX_AdvancedMechLab
                 harmony = new Harmony("com.github.AkiraBrahe.BTX_AdvancedMechLab");
                 ApplyHarmonyPatches();
                 RegisterAutoFixers();
+                RegisterValidators();
                 SyncQuirkSettings();
                 Log.Log("Mod initialized!");
             }
@@ -55,20 +57,18 @@ namespace BTX_AdvancedMechLab
             Features.EngineHeatSinks.HeatSinkAutoFixer.Register();
         }
 
+        internal static void RegisterValidators()
+        {
+
+        }
+
         internal static void SyncQuirkSettings()
         {
-            try
-            {
-                var settings = Quirks.MechQuirks.modSettings;
-                if (!settings.ClansDifficultToMaint && !settings.ClansNonStandard)
-                    Settings.ArmorRepair.ClanTechRepairCostMultiplier = 1.0f;
-                if (!settings.ExtraTonnageRepairScaling)
-                    Settings.ArmorRepair.EnableTonnageRepairScaling = false;
-            }
-            catch (Exception ex)
-            {
-                Log.LogException(ex);
-            }
+            var settings = Quirks.MechQuirks.modSettings;
+            if (!settings.ClansDifficultToMaint && !settings.ClansNonStandard)
+                Settings.ArmorRepair.ClanTechRepairCostMultiplier = 1.0f;
+            if (!settings.ExtraTonnageRepairScaling)
+                Settings.ArmorRepair.EnableTonnageRepairScaling = false;
         }
     }
 }

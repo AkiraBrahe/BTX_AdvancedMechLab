@@ -41,7 +41,7 @@ namespace BTX_AdvancedMechLab.Core.Data
             { ArmorType.Standard, new ArmorInfo {
                 Type = ArmorType.Standard,
                 Name = "Standard",
-                Description = "Standard armor provides reliable protection and is the baseline for all other armor types.",
+                Description = "Standard armor provides reliable protection with no special benefits or drawbacks.",
                 Tag = string.Empty,
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,

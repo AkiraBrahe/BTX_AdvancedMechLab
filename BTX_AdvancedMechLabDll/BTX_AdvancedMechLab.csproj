@@ -50,9 +50,7 @@
     <Reference Include="Extended_CE">
       <HintPath>$(BattleTechGameDir)\Mods\BT_Extended_CE\Extended_CE.dll</HintPath>
     </Reference>
-    <Reference Include="InControl">
-      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\InControl.dll</HintPath>
-    </Reference>
+    <Reference Include="InControl" />
     <Reference Include="LootMagnet">
       <HintPath>$(BattleTechGameDir)\Mods\LootMagnet\LootMagnet.dll</HintPath>
     </Reference>
