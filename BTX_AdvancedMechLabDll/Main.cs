@@ -40,6 +40,12 @@ namespace BTX_AdvancedMechLab
             harmony.Unpatch(AccessTools.DeclaredMethod(typeof(SimGameState), "CreateMechRepairWorkOrder"), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
             harmony.Unpatch(AccessTools.Constructor(typeof(WorkOrderEntry_RepairMechStructure)), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
 
+            // --- CAC-C ---
+            /* Tonnage Calculation */
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechStatisticsRules), "CalculateTonnage"), HarmonyPatchType.Postfix, "com.github.mcb5637.BTX_CAC_Compatibility");
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechLabMechInfoWidget), "CalculateTonnage"), HarmonyPatchType.Postfix, "com.github.mcb5637.BTX_CAC_Compatibility");
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechValidationRules), "ValidateMechTonnage"), HarmonyPatchType.Prefix, "com.github.mcb5637.BTX_CAC_Compatibility");
+
             harmony.PatchAll(Assembly.GetExecutingAssembly());
         }
 

@@ -33,11 +33,11 @@ namespace BTX_AdvancedMechLab.Features.Armor
                     var armor = mechDef.GetArmorInfo();
                     if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
                     {
-                        float armorTonnage = mechDef.GetTotalArmorWeight(armor);
+                        float armorTonnage = mechDef.CalculateArmorWeight();
                         int partCount = mechPartGroup.Count();
                         float maxParts = simGame.Constants.Story.DefaultMechPartMax;
 
-                        float recoveredArmorTonnage = armorTonnage * ((float)partCount / maxParts);
+                        float recoveredArmorTonnage = armorTonnage * (partCount / maxParts);
 
                         // Random weight between 20% and 50% of the recovered tonnage.
                         float yieldPercent = (simGame.NetworkRandom.Float() * (0.5f - 0.2f)) + 0.2f;

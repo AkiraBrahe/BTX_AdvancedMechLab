@@ -27,5 +27,36 @@ namespace BTX_AdvancedMechLab.Core
             { 6, ChassisLocations.LeftArm },
             { 7, ChassisLocations.RightArm }
         };
+
+        /* ALL LOCATIONS
+         * Logically ordered locations on a mech.
+         */
+        public static readonly ChassisLocations[] allLocations = [
+            ChassisLocations.Head,
+            ChassisLocations.LeftArm,
+            ChassisLocations.LeftTorso,
+            ChassisLocations.CenterTorso,
+            ChassisLocations.RightTorso,
+            ChassisLocations.RightArm,
+            ChassisLocations.LeftLeg,
+            ChassisLocations.RightLeg
+        ];
+
+        /* SIDE LOCATIONS
+         * Locations that are considered side locations on a mech.
+         */
+        public static readonly ChassisLocations[] sideLocations = [
+            ChassisLocations.LeftArm, ChassisLocations.RightArm,
+            ChassisLocations.LeftTorso, ChassisLocations.RightTorso,
+            ChassisLocations.LeftLeg, ChassisLocations.RightLeg
+        ];
+
+        /* CORE LOCATIONS
+         * Locations that are considered core locations on a mech.
+         */
+        public static readonly ChassisLocations[] coreLocations = [
+            ChassisLocations.CenterTorso,
+            ChassisLocations.Head
+        ];
     }
 }

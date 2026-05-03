@@ -72,33 +72,23 @@ namespace BTX_AdvancedMechLab.Core
         #region Mech Properties
 
         /// <summary>
-        /// Calculates the total internal structure of a mech.
+        /// Retrieves the total structure points of a mech.
         /// </summary>
-        public static int GetTotalStructurePoints(this MechDef mech)
+        public static int GetStructurePoints(this MechDef mech)
         {
-            int totalStructure = 0;
+            int structurePoints = 0;
             foreach (var location in mech.Chassis.Locations)
             {
-                totalStructure += (int)location.InternalStructure;
+                structurePoints += (int)location.InternalStructure;
             }
 
-            return totalStructure;
+            return structurePoints;
         }
 
         /// <summary>
-        /// Calculates the total armor weight in tons of a mech.
+        /// Calculates the armor weight of a mech in tons.
         /// </summary>
-        public static float GetTotalArmorWeight(this MechDef mech, ArmorInfo armor)
-        {
-            int totalArmor = 0;
-            foreach (var location in mech.Locations)
-            {
-                totalArmor += (int)location.AssignedArmor;
-                totalArmor += Mathf.Max((int)location.AssignedRearArmor, 0);
-            }
-
-            return totalArmor / (80 * armor.PptMultiplier);
-        }
+        public static float CalculateArmorWeight(this MechDef mech) => mech.CalculateArmorWeightKG(null) / 1000f;
 
         /// <summary>
         /// Calculates the current armor percentage of a mech.
@@ -127,6 +117,84 @@ namespace BTX_AdvancedMechLab.Core
             }
 
             return (int)Math.Round((double)currentArmor / maxArmor * 100);
+        }
+
+
+        /// <summary>
+        /// Calculates the weight of a mech in KG.
+        /// </summary>
+        public static int CalculateWeightKG(this MechDef m, MechLabPanel panel = null)
+        {
+            if (m.Chassis == null) return 0;
+
+            int weightKG = (int)(m.Chassis.InitialTonnage * 1000.0f);
+            weightKG += m.CalculateArmorWeightKG(panel);
+
+            var inventory = panel != null ? [.. panel.activeMechInventory] : m.Inventory.ToList();
+            foreach (var i in inventory)
+            {
+                weightKG += (int)(i.Def.Tonnage * 1000.0f);
+            }
+
+            return weightKG / 10 == (int)(m.Chassis.Tonnage * 100.0f)
+                ? (int)(m.Chassis.Tonnage * 1000.0f) : weightKG;
+        }
+
+        /// <summary>
+        /// Calculates the armor weight of a mech in KG.
+        /// </summary>
+        public static int CalculateArmorWeightKG(this MechDef mech, MechLabPanel panel = null)
+        {
+            var armor = mech.GetArmorInfo();
+
+            var patchworkMask = ChassisLocations.None;
+            if (mech.PatchworkLocations != null)
+            {
+                for (int i = 0; i < mech.PatchworkLocations.Length; i++)
+                {
+                    patchworkMask |= mech.PatchworkLocations[i];
+                }
+            }
+
+            int totalArmorWeightKG = 0;
+            foreach (var location in mech.Locations)
+            {
+                totalArmorWeightKG += CalcLocationArmorWeightKG(location.Location, armorDensity: armor.PptMultiplier, patchworkMask, location, panel?.GetWidgetForLocation(location.Location));
+            }
+
+            static int CalcLocationArmorWeightKG(ChassisLocations location, float armorDensity, ChassisLocations patchworkMask, LocationLoadoutDef locDef, MechLabLocationWidget widget)
+            {
+                float assignedArmor = widget != null ? widget.currentArmor : locDef.AssignedArmor;
+                float assignedRearArmor = widget != null ? widget.currentRearArmor : locDef.AssignedRearArmor;
+                long points = (long)(assignedArmor * 1000f) + (long)(Mathf.Max(0, assignedRearArmor) * 1000f);
+
+                bool isPatchwork = (patchworkMask & location) != 0; // Use bitwise AND (&) to check for overlap
+                long armorPpt = isPatchwork ? 800L : (long)(800 * armorDensity);
+
+                return (int)(points * 10L / armorPpt);
+            }
+
+            return totalArmorWeightKG;
+        }
+
+        #endregion
+
+        #region UI Extensions
+
+        public static MechLabLocationWidget GetWidgetForLocation(this MechLabPanel panel, ChassisLocations location)
+        {
+            return panel == null ? null : location switch
+            {
+                ChassisLocations.Head => panel.headWidget,
+                ChassisLocations.CenterTorso => panel.centerTorsoWidget,
+                ChassisLocations.LeftTorso => panel.leftTorsoWidget,
+                ChassisLocations.RightTorso => panel.rightTorsoWidget,
+                ChassisLocations.LeftArm => panel.leftArmWidget,
+                ChassisLocations.RightArm => panel.rightArmWidget,
+                ChassisLocations.LeftLeg => panel.leftLegWidget,
+                ChassisLocations.RightLeg => panel.rightLegWidget,
+                _ => null
+            };
         }
 
         #endregion
