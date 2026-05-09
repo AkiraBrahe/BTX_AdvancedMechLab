@@ -1,9 +1,9 @@
 using BattleTech;
 using CustomComponents;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Extended_CE.BTComponents;
 
 namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 {
@@ -14,13 +14,6 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
     {
         #region Engine Specs
 
-        public enum EngineHSType
-        {
-            Single,
-            Double,
-            ClanDouble
-        }
-
         public struct EngineSpecs
         {
             public string Type;
@@ -28,31 +21,11 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             public int MinInternal;
             public int MaxInternal;
             public int AdditionalSlots;
-            public EngineHSType HSType;
+            public HeatSinkType HSType;
 
-            public readonly string InternalDefID => HSType switch
-            {
-                EngineHSType.Single => "Gear_HeatSink_Internal_Standard",
-                EngineHSType.Double => "Gear_HeatSink_Internal_Double",
-                EngineHSType.ClanDouble => "Gear_HeatSink_Internal_Double_Clan",
-                _ => "Gear_HeatSink_Internal_Standard",
-            };
-
-            public readonly string ExternalDefID => HSType switch
-            {
-                EngineHSType.Single => "Gear_HeatSink_Generic_Standard",
-                EngineHSType.Double => "Gear_HeatSink_Generic_Double",
-                EngineHSType.ClanDouble => "Gear_HeatSink_Clan_Double",
-                _ => "Gear_HeatSink_Generic_Standard",
-            };
-
-            public readonly string Abbreviation => HSType switch
-            {
-                EngineHSType.Single => "SHS",
-                EngineHSType.Double => "DHS",
-                EngineHSType.ClanDouble => "cDHS",
-                _ => "SHS",
-            };
+            public readonly string InternalDefID => HeatSinkTypes[HSType].InternalDefID;
+            public readonly string ExternalDefID => HeatSinkTypes[HSType].ExternalDefID;
+            public readonly string Abbreviation => HeatSinkTypes[HSType].Abbreviation;
         }
 
         public static Dictionary<string, string> EngineIDs = new()
@@ -67,7 +40,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                 { "Gear_XXL_Engine", "XXL Fusion" },
             };
 
-        public static EngineSpecs GetEngineSpecs(ChassisDef chassis, string coolingType = null)
+        public static EngineSpecs GetEngineSpecs(ChassisDef chassis, HeatSinkType? hsType)
         {
             int.TryParse(System.Text.RegularExpressions.Regex.Match(chassis.movementCapDefID, @"\d+$").Value, out int walkMp);
             int rating = (int)chassis.Tonnage * walkMp;
@@ -75,14 +48,9 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             int minInternal = Mathf.Min(10, maxInternal);
             int additionalSlots = Mathf.Max(0, maxInternal - 10);
 
-            var hsType = EngineHSType.Single;
-            if (!string.IsNullOrEmpty(coolingType))
+            if (hsType == null && chassis.ChassisTags.Contains("chassis_DHS"))
             {
-                Enum.TryParse<EngineHSType>(coolingType, out hsType);
-            }
-            else if (chassis.ChassisTags.Contains("chassis_DHS"))
-            {
-                hsType = chassis.ChassisTags.Contains("chassis_clan") ? EngineHSType.ClanDouble : EngineHSType.Double;
+                hsType = chassis.ChassisTags.Contains("chassis_clan") ? HeatSinkType.ClanDouble : HeatSinkType.Double;
             }
 
             var fixedInv = chassis.FixedEquipment?.ToList();
@@ -99,7 +67,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                             MinInternal = minInternal,
                             MaxInternal = maxInternal,
                             AdditionalSlots = additionalSlots,
-                            HSType = hsType
+                            HSType = hsType ?? HeatSinkType.Single
                         };
                     }
                 }
@@ -112,16 +80,71 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                 MinInternal = minInternal,
                 MaxInternal = maxInternal,
                 AdditionalSlots = additionalSlots,
-                HSType = hsType
+                HSType = hsType ?? HeatSinkType.Single
             };
         }
 
         #endregion
 
-        public static int GetBaseHeatSinkCount(MechDef mech, EngineSpecs? specs = null) => specs.HasValue ? specs.Value.MinInternal : GetEngineSpecs(mech.Chassis).MinInternal;
+        #region Heat Sink Counts and Conversions
+
+        public static int GetBaseHeatSinkCount(MechDef mech, EngineSpecs? specs = null) => specs.HasValue ? specs.Value.MinInternal : GetEngineSpecs(mech.Chassis, null).MinInternal;
 
         public static int GetInternalHeatSinkCount(MechDef mech) => mech.Inventory.Count(i => i.ComponentDefType == ComponentType.HeatSink && i.IsCategory("Internal"));
 
         public static int GetExternalHeatSinkCount(MechDef mech) => mech.Inventory.Count(i => i.ComponentDefType == ComponentType.HeatSink && !i.IsCategory("Internal"));
+
+        public static bool IsInternalHeatSink(string id) => HeatSinkTypes.Values.Any(v => v.InternalDefID == id);
+
+        public static string GetExternalID(string internalID) => HeatSinkTypes.Values.FirstOrDefault(v => v.InternalDefID == internalID).ExternalDefID;
+
+        /// <summary>
+        /// Converts all internal heat sinks in the salvage pool to external heat sinks.
+        /// </summary>
+        public static void ConvertInternalHeatSinksToExternalInSalvage(List<SalvageDef> salvagePool, SimGameState simGame)
+        {
+            if (salvagePool == null || simGame == null) return;
+
+            foreach (var salvage in salvagePool)
+            {
+                if (salvage.Type == SalvageDef.SalvageType.COMPONENT && IsInternalHeatSink(salvage.RewardID))
+                {
+                    string externalID = GetExternalID(salvage.RewardID);
+                    if (externalID != null)
+                    {
+                        Main.Log.LogDebug($"Converting salvaged internal heat sink {salvage.RewardID} to {externalID}");
+                        salvage.RewardID = externalID;
+
+                        // Attempt to update description
+                        // if (simGame.DataManager.HeatSinkDefs.TryGet(externalID, out var def))
+                        // {
+                        //     salvage.Description = new DescriptionDef(def.Description);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts all internal heat sinks in the mech to external heat sinks.
+        /// </summary>
+        public static void ConvertInternalHeatSinksToExternalInMech(MechDef mech)
+        {
+            if (mech == null) return;
+
+            foreach (var component in mech.Inventory)
+            {
+                if (IsInternalHeatSink(component.ComponentDefID))
+                {
+                    string externalID = GetExternalID(component.ComponentDefID);
+                    if (externalID != null)
+                    {
+                        Main.Log.LogDebug($"Converting internal heat sink {component.ComponentDefID} to {externalID} in mech {mech.Name} inventory for scraping/storage.");
+                        component.ComponentDefID = externalID;
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }

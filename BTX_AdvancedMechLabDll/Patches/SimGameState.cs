@@ -139,6 +139,16 @@ namespace BTX_AdvancedMechLab.Patches
     #region Mech Bay
 
     /// <summary>
+    /// Converts internal heat sinks to external when scraping or storing a mech.
+    /// </summary>
+    [HarmonyPatch(typeof(SimGameState), "StripMech", typeof(int), typeof(MechDef))]
+    public static class SimGameState_StripMech
+    {
+        [HarmonyPostfix]
+        public static void Postfix(MechDef def) => HeatSinkManager.ConvertInternalHeatSinksToExternalInMech(def);
+    }
+
+    /// <summary>
     /// Converts armor to scrap items when scraping a mech with non-standard armor.
     /// </summary>
     [HarmonyPatch(typeof(SimGameState), "ScrapActiveMech", typeof(int), typeof(MechDef))]
