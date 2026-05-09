@@ -1,7 +1,9 @@
 using BattleTech;
 using BattleTech.UI.TMProWrapper;
 using BattleTech.UI.Tooltips;
+using BTX_AdvancedMechLab.Features.Armor;
 using UnityEngine;
+using static BattleTech.SimGameState;
 
 namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 {
@@ -16,7 +18,7 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             _tooltip = GetComponent<HBSTooltip>();
         }
 
-        public void Refresh(MechDef mech)
+        public void Refresh(MechDef mech, SimGameState simGame = null)
         {
             var armor = mech.GetArmorInfo();
 
@@ -28,17 +30,28 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             description += "\n\nA 'Mech's armor is primordial to protect its internals in combat. ";
             description += armor.Description;
 
-            // TODO: Add logic to check inventory for armor scraps
-            // description += $"\n\nAvailable in Inventory:";
-            // description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] 10t of Ferro-Fibrous Armor</color>";
-            // description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] 0t of Stealth Armor</color>";
+            if (simGame != null)
+            {
+                description += $"\n\nAvailable in Inventory:";
+                var availableTypes = ArmorManager.GetAvailableArmorTypes(simGame);
+                foreach (var armorType in availableTypes)
+                {
+                    int availableTonnage = simGame.GetItemCount(armorType.ScrapItemDefID, typeof(UpgradeDef), ItemCountType.ALL);
+                    int requiredTonnage = (int)Mathf.Round(currentArmor / (80 * armorType.PptMultiplier));
 
-            // string help = "\n\n<size=80%>---</size>" + "\n• <b>Click</b> to open the widget menu to manage armor.";
+                    if (availableTonnage >= requiredTonnage)
+                        description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] {availableTonnage}t of {armorType.Name} Armor</color>";
+                    else
+                        description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] {availableTonnage}t of {armorType.Name} Armor</color>";
+                }
+            }
+
+            string help = "\n\n• <b>Click</b> to access the widget menu and manage armor.";
 
             _tooltip.defaultStateData.SetObject(new BaseDescriptionDef(
                 "ArmorTypeTooltip",
                 "Armor Type",
-                description,
+                description + help,
                 "uixSvgIcon_action_end"
             ));
         }

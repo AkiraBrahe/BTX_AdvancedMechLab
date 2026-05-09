@@ -1,6 +1,10 @@
 using BattleTech.UI;
 using BTX_AdvancedMechLab.Features.Customization;
+using BTX_AdvancedMechLab.Features.Customization.Widgets;
+using CustomComponents;
 using CustomUnits;
+using System.Collections;
+using UnityEngine;
 
 namespace BTX_AdvancedMechLab.Patches
 {
@@ -10,6 +14,15 @@ namespace BTX_AdvancedMechLab.Patches
     [HarmonyPatch(typeof(MechLabMechInfoWidget), "RefreshInfo")]
     public static class MechLabMechInfoWidget_RefreshInfo
     {
+        internal static bool hasInitialized = false;
+
+        internal static Transform Container;
+        internal static Transform LayoutHardpoints;
+        internal static Transform StockButton;
+
+        internal static ArmorWidget ArmorWidget;
+        internal static CoolingWidget CoolingWidget;
+
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         public static void Postfix(MechLabMechInfoWidget __instance)
@@ -17,27 +30,52 @@ namespace BTX_AdvancedMechLab.Patches
             var mechDef = __instance.mechLab.CreateMechDef();
             if (mechDef == null) return;
 
-            bool isVehicle = mechDef.IsVehicle();
-
-            var layoutTonnage = __instance.remainingTonnage.transform.parent;
-            var objStatus = layoutTonnage.parent;
-            var container = objStatus.Find("custom_capacities");
-            var layoutHardpoints = objStatus.Find("layout_hardpoints");
-
-            UISetup.GetOrSetupWidgets(__instance, objStatus, container, layoutTonnage, layoutHardpoints,
-                out var armorWidget, out var coolingWidget);
-
-            container.gameObject.SetActive(!isVehicle);
-
-            var button = layoutHardpoints.Find("OBJ_stockBttn");
-            button?.gameObject.SetActive(false);
-
-            var simGame = __instance.mechLab.sim;
-            if (simGame != null && !isVehicle)
+            if (ArmorWidget == null || CoolingWidget == null)
             {
-                armorWidget.Refresh(mechDef, simGame);
-                coolingWidget.Refresh(mechDef);
+                hasInitialized = false;
+                var layoutTonnage = __instance.remainingTonnage.transform.parent;
+                var objStatus = layoutTonnage.parent;
+
+                Container = objStatus.Find("custom_capacities");
+                LayoutHardpoints = objStatus.Find("layout_hardpoints");
+                StockButton = LayoutHardpoints?.Find("OBJ_stockBttn");
+
+                UISetup.GetOrSetupWidgets(__instance, objStatus, Container, layoutTonnage, LayoutHardpoints,
+                    out ArmorWidget, out CoolingWidget);
+
+                if (Container == null) Container = objStatus.Find("custom_capacities");
+                Container?.gameObject.SetActive(false);
+
+                __instance.StartCoroutine(DelayedInit(__instance));
+                return;
             }
+
+            if (!hasInitialized)
+            {
+                Container?.gameObject.SetActive(false);
+                return;
+            }
+
+            if (StockButton == null) StockButton = LayoutHardpoints?.Find("OBJ_stockBttn");
+            StockButton?.gameObject.SetActive(false);
+
+            bool isVehicle = mechDef.IsVehicle();
+            Container?.gameObject.SetActive(!isVehicle);
+
+            if (!isVehicle)
+            {
+                var simGame = __instance.mechLab.sim;
+                ArmorWidget.Refresh(mechDef, simGame);
+                CoolingWidget.Refresh(mechDef, simGame);
+            }
+        }
+
+        private static IEnumerator DelayedInit(MechLabMechInfoWidget mechInfoWidget)
+        {
+            yield return new WaitForEndOfFrame();
+
+            hasInitialized = true;
+            mechInfoWidget.RefreshInfo();
         }
     }
 }

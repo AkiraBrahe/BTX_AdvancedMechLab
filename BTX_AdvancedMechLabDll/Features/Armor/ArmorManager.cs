@@ -35,5 +35,24 @@ namespace BTX_AdvancedMechLab.Features.Armor
 
             return null;
         }
+
+        /// <summary>
+        /// Returns a list of available armor types at current date.
+        /// </summary>
+        public static List<ArmorInfo> GetAvailableArmorTypes(SimGameState simGame)
+        {
+            var currentDate = simGame.CurrentDate;
+            var armorTypes = new List<ArmorInfo>();
+
+            foreach (var armorType in ArmorTypes.Values)
+            {
+                if (currentDate >= armorType.IntroDate && armorType.ScrapItemDefID != string.Empty)
+                {
+                    armorTypes.Add(armorType);
+                }
+            }
+
+            return armorTypes;
+        }
     }
 }

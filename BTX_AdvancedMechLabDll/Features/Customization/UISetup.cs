@@ -92,6 +92,7 @@ namespace BTX_AdvancedMechLab.Features.Customization
                 var childRect = child.GetComponent<RectTransform>();
                 if (childRect != null)
                 {
+                    childRect.pivot = new Vector2(0, 1);
                     if (layout.preferredHeight <= 0) layout.preferredHeight = childRect.rect.height;
                     if (layout.preferredWidth <= 0) layout.preferredWidth = childRect.rect.width;
                 }
