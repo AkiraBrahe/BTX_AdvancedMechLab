@@ -86,16 +86,14 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             {
                 int hsSize = specs.HSType == EngineHSType.Single ? 1 : (specs.HSType == EngineHSType.Double ? 3 : 2);
 
-                var distribution = Globals.allLocations.ToDictionary(l => l, l => 0);
+                var distribution = allLocations.ToDictionary(l => l, l => 0);
                 var freeSlots = distribution.Keys.ToDictionary(l => l, l => mech.GetFreeSlotsInLoc([.. inventory], l, hsSize));
 
-                AddHeatSinks(mech, inventory, externalId, externalToAdd, distribution, freeSlots);
+                AddHeatSinks(mech, inventory, externalId, externalToAdd, distribution, freeSlots, out int leftover);
 
-                // Fallback to internal if necessary
-                if (externalToAdd > 0)
+                if (leftover > 0)
                 {
-                    Main.Log.LogDebug($"{mech.Description.Id} lacked space for {externalToAdd} external heat sinks. Adding internal instead.");
-                    for (int i = 0; i < externalToAdd; i++)
+                    for (int i = 0; i < leftover; i++)
                     {
                         inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
                     }
@@ -124,7 +122,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
         /// <summary>
         /// Adds heat sinks in paired locations to prioritize symmetry.
         /// </summary>
-        private static void AddHeatSinks(MechDef mech, List<MechComponentRef> inventory, string externalId, int externalToAdd, Dictionary<ChassisLocations, int> distribution, Dictionary<ChassisLocations, int> freeSlots)
+        private static void AddHeatSinks(MechDef mech, List<MechComponentRef> inventory, string externalId, int externalToAdd, Dictionary<ChassisLocations, int> distribution, Dictionary<ChassisLocations, int> freeSlots, out int leftover)
         {
             void AddSingle(ChassisLocations loc)
             {
@@ -161,7 +159,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 
             if (externalToAdd > 0)
             {
-                foreach (var loc in Globals.allLocations)
+                foreach (var loc in allLocations)
                 {
                     while (externalToAdd > 0 && freeSlots[loc] > 0) AddSingle(loc);
                 }
@@ -174,6 +172,8 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                     inventory.Add(new MechComponentRef(externalId, "", ComponentType.HeatSink, kvp.Key) { DataManager = mech.DataManager });
                 }
             }
+
+            leftover = externalToAdd;
         }
     }
 }

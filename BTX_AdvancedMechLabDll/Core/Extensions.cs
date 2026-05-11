@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BTX_AdvancedMechLab.Core
 {
-    public static class Helpers
+    public static class Extensions
     {
         extension(MechDef mech)
         {
@@ -25,9 +25,12 @@ namespace BTX_AdvancedMechLab.Core
                 bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
                 foreach (string tag in mech.Chassis.ChassisTags)
                 {
-                    var match = StructureTypes.FirstOrDefault(st => st.Value.Tag == tag);
-                    type = match.Key;
-                    break;
+                    var match = StructureTypes.FirstOrDefault(st => !string.IsNullOrEmpty(st.Value.Tag) && st.Value.Tag == tag);
+                    if (match.Value.Tag != null)
+                    {
+                        type = match.Key;
+                        break;
+                    }
                 }
 
                 if (isClan && type == StructureType.EndoSteel)
@@ -54,9 +57,12 @@ namespace BTX_AdvancedMechLab.Core
                     bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
                     foreach (string tag in mech.Chassis.ChassisTags)
                     {
-                        var match = ArmorTypes.FirstOrDefault(at => at.Value.Tag == tag);
-                        type = match.Key;
-                        break;
+                        var match = ArmorTypes.FirstOrDefault(at => !string.IsNullOrEmpty(at.Value.Tag) && at.Value.Tag == tag);
+                        if (match.Value.Tag != null)
+                        {
+                            type = match.Key;
+                            break;
+                        }
                     }
 
                     if (isClan && type == ArmorType.FerroFibrous)
@@ -200,19 +206,19 @@ namespace BTX_AdvancedMechLab.Core
             /// Determines the number of free inventory slots in a location.
             /// </summary>
             public int GetFreeSlotsInLoc(IEnumerable<MechComponentRef> inventory, ChassisLocations location) =>
-                mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location).Sum(i => i.Def.InventorySize);
+                mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.Def != null && i.MountedLocation == location).Sum(i => i.Def.InventorySize);
 
             /// <summary>
             /// Determines the number of free inventory slots in a location, taking into account the size of the item being added.
             /// </summary>
             public int GetFreeSlotsInLoc(IEnumerable<MechComponentRef> inventory, ChassisLocations location, int size) =>
-                (mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location).Sum(i => i.Def.InventorySize)) / size;
+                (mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.Def != null && i.MountedLocation == location).Sum(i => i.Def.InventorySize)) / size;
 
             /// <summary>
             /// Determines the number of free inventory slots in a location, excluding a specific category.
-            /// </summary
+            /// </summary>
             public int GetFreeSlotsInLoc(IEnumerable<MechComponentRef> inventory, ChassisLocations location, string excludedCategory) =>
-                mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.MountedLocation == location && !i.IsCategory(excludedCategory)).Sum(i => i.Def.InventorySize);
+                mech.GetChassisLocationDef(location).InventorySlots - inventory.Where(i => i.Def != null && i.MountedLocation == location && !i.IsCategory(excludedCategory)).Sum(i => i.Def.InventorySize);
 
             #endregion
         }

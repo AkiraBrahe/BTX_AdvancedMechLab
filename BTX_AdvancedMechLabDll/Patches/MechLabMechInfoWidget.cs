@@ -1,7 +1,6 @@
 using BattleTech.UI;
 using BTX_AdvancedMechLab.Features.Customization;
 using BTX_AdvancedMechLab.Features.Customization.Widgets;
-using CustomComponents;
 using CustomUnits;
 using System.Collections;
 using UnityEngine;

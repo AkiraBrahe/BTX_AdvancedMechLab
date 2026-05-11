@@ -4,9 +4,8 @@
       "CategoryID": "Internal"
     },
     "Flags": [
-      "autorepair",
       "no_remove",
-      "no_salvage",
+      "hide_equip",
       "hide"
     ],
     "Sorter": 1

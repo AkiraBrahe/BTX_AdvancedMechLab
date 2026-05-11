@@ -56,8 +56,8 @@ namespace BTX_AdvancedMechLab.Patches
         [HarmonyPrefix]
         public static void Prefix(ref bool __runOriginal, SimGameState __instance)
         {
-            if (__runOriginal == false || __instance == null) return;
-            Globals.tempMechLabQueue.Clear();
+            if (!__runOriginal || __instance == null) return;
+            tempMechLabQueue.Clear();
         }
 
         /// <summary>
@@ -67,19 +67,19 @@ namespace BTX_AdvancedMechLab.Patches
         public static void Postfix(SimGameState __instance)
         {
             int skipMechCount = 0;
-            if (Globals.tempMechLabQueue.Count <= 0) return;
+            if (tempMechLabQueue.Count <= 0) return;
 
             if (!Main.Settings.ArmorRepair.AutoRepairMechsWithDestroyedComponents)
             {
                 skipMechCount = FilterMechsWithDestroyedComponents(__instance);
             }
 
-            int mechRepairCount = Globals.tempMechLabQueue.Count;
+            int mechRepairCount = tempMechLabQueue.Count;
 
             // No mechs to repair or report on.
             if (mechRepairCount <= 0 && skipMechCount <= 0)
             {
-                Globals.tempMechLabQueue.Clear();
+                tempMechLabQueue.Clear();
                 return;
             }
 
@@ -178,7 +178,7 @@ namespace BTX_AdvancedMechLab.Patches
         [HarmonyWrapSafe]
         public static void Prefix(ref bool __runOriginal, SimGameState __instance, WorkOrderEntry_RepairMechStructure order)
         {
-            if (__runOriginal == false) return;
+            if (!__runOriginal) return;
             if (order.IsMechLabComplete) return;
 
             var mechByID = __instance.GetMechByID(order.MechLabParent.MechID);
@@ -202,7 +202,7 @@ namespace BTX_AdvancedMechLab.Patches
         [HarmonyPrefix]
         public static void Prefix(ref bool __runOriginal, SimGameState __instance)
         {
-            if (__runOriginal == false) return;
+            if (!__runOriginal) return;
             if (Main.Settings.ArmorRepair.EnableAutoRepairPrompt)
             {
                 __instance.CompanyStats.Set("COMPANY_NotificationViewed_BattleMechRepairsNeeded", __instance.DaysPassed);

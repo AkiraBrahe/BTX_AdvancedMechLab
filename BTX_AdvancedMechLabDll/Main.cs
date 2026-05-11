@@ -68,7 +68,7 @@ namespace BTX_AdvancedMechLab
             if (!settings.ClansDifficultToMaint && !settings.ClansNonStandard)
                 Settings.ArmorRepair.ClanTechRepairCostMultiplier = 1.0f;
             if (!settings.ExtraTonnageRepairScaling)
-                Settings.ArmorRepair.EnableTonnageRepairScaling = false;
+                Settings.ArmorRepair.ScaleStructureRepairTimeByTonnage = false;
         }
     }
 }

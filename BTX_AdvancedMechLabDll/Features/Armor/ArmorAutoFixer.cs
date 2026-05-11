@@ -127,7 +127,11 @@ namespace BTX_AdvancedMechLab.Features.Armor
         /// <summary>
         /// Gets the total number of inventory slots taken up by a list of blockers.
         /// </summary>
-        private static int GetTotalBlockerSlots(List<MechComponentRef> allBlockers) => allBlockers == null || allBlockers.Count == 0 ? 0 : allBlockers.Sum(b => b.Def.InventorySize);
+        private static int GetTotalBlockerSlots(List<MechComponentRef> allBlockers)
+        {
+            return allBlockers == null || allBlockers.Count == 0
+                ? 0 : allBlockers.SelectMany(b => b.Def != null ? [b.Def.InventorySize] : new int[0]).Sum();
+        }
 
         /// <summary>
         /// Reduces the number of inventory slots taken up by blockers.
@@ -139,7 +143,7 @@ namespace BTX_AdvancedMechLab.Features.Armor
             while (slotsToRemove > 0)
             {
                 bool changed = false;
-                foreach (var location in Globals.repairPriorities.Values)
+                foreach (var location in repairPriorities.Values)
                 {
                     var blocker = allBlockers.FirstOrDefault(b => b.MountedLocation == location);
                     if (blocker != null)
@@ -172,7 +176,7 @@ namespace BTX_AdvancedMechLab.Features.Armor
         {
             if (slotsToAdd <= 0) return;
 
-            var distribution = Globals.allLocations.ToDictionary(l => l, l => 0);
+            var distribution = allLocations.ToDictionary(l => l, l => 0);
             var freeSlots = distribution.Keys.ToDictionary(l => l, l => mech.GetFreeSlotsInLoc([.. mech.Inventory], l));
 
             void Fill(List<ChassisLocations> locations)
@@ -196,8 +200,8 @@ namespace BTX_AdvancedMechLab.Features.Armor
                 } while (added && slotsToAdd > 0);
             }
 
-            Fill([.. Globals.sideLocations]);
-            Fill([.. Globals.coreLocations]);
+            Fill([.. sideLocations]);
+            Fill([.. coreLocations]);
 
             if (slotsToAdd > 0)
             {

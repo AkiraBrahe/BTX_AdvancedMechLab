@@ -15,11 +15,11 @@
   "Settings": {
     "Debug": false,
     "ArmorRepair": {
-      "EnableStructureRepair": true,
-      "EnableTonnageRepairScaling": true,
       "EnableAutoRepairPrompt": true,
       "AutoRepairMechsWithDestroyedComponents": true,
-      "ClanTechRepairCostMultiplier ": 1.5
+      "AutoRepairStructure": true,
+      "ScaleStructureRepairTimeByTonnage": true,
+      "ClanTechRepairCostMultiplier": 1.5
     },
     "ArmorSalvage": {
       "EnableArmorStackLimit": true,

@@ -18,10 +18,10 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static void ProcessStructureRepairs(SimGameState simGame, MechDef mech, ref WorkOrderEntry_MechLab workOrder)
         {
-            if (!Main.Settings.ArmorRepair.EnableStructureRepair || !mech.NeedsStructureRepair())
+            if (!Main.Settings.ArmorRepair.AutoRepairStructure || !mech.NeedsStructureRepair())
                 return;
 
-            foreach (var location in Globals.repairPriorities.Values)
+            foreach (var location in repairPriorities.Values)
             {
                 var locationLoadout = mech.GetLocationLoadoutDef(location);
                 float currentStructure = locationLoadout.CurrentInternalStructure;
@@ -46,7 +46,7 @@ namespace BTX_AdvancedMechLab.Features
             if (!mech.NeedArmorRepair())
                 return;
 
-            foreach (var location in Globals.repairPriorities.Values)
+            foreach (var location in repairPriorities.Values)
             {
                 var locationLoadout = mech.GetLocationLoadoutDef(location);
                 var chassisLocationDef = mech.GetChassisLocationDef(location);
@@ -112,7 +112,7 @@ namespace BTX_AdvancedMechLab.Features
         {
             try
             {
-                Globals.tempMechLabQueue.Add(workOrder);
+                tempMechLabQueue.Add(workOrder);
             }
             catch (Exception ex)
             {
@@ -171,13 +171,13 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static int FilterMechsWithDestroyedComponents(SimGameState simGame)
         {
-            int originalCount = Globals.tempMechLabQueue.Count;
-            Globals.tempMechLabQueue.RemoveAll(order =>
+            int originalCount = tempMechLabQueue.Count;
+            tempMechLabQueue.RemoveAll(order =>
             {
                 var mech = simGame.GetMechByID(order.MechID);
                 return mech.HasDestroyedComponents();
             });
-            return originalCount - Globals.tempMechLabQueue.Count;
+            return originalCount - tempMechLabQueue.Count;
         }
 
         /// <summary>
@@ -197,15 +197,15 @@ namespace BTX_AdvancedMechLab.Features
                     message,
                     simGame.GetCrewPortrait(SimGameCrew.Crew_Yang),
                     string.Empty,
-                    Globals.tempMechLabQueue.Clear,
+                    tempMechLabQueue.Clear,
                     "OK"
                 );
                 return;
             }
 
             // Calculate total repair costs
-            int cbills = Globals.tempMechLabQueue.Sum(o => o.GetCBillCost());
-            int techCost = Globals.tempMechLabQueue.Sum(o => o.GetCost());
+            int cbills = tempMechLabQueue.Sum(o => o.GetCBillCost());
+            int techCost = tempMechLabQueue.Sum(o => o.GetCost());
 
             // Calculate tech cost in days
             int techDays = 1;
@@ -224,7 +224,7 @@ namespace BTX_AdvancedMechLab.Features
                 string.Empty,
                 () => ProcessRepairsAndClearQueue(simGame),
                 "Yes",
-                Globals.tempMechLabQueue.Clear,
+                tempMechLabQueue.Clear,
                 "No"
             );
         }
@@ -283,11 +283,11 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static void ProcessRepairsAndClearQueue(SimGameState simGame)
         {
-            foreach (var workOrder in Globals.tempMechLabQueue)
+            foreach (var workOrder in tempMechLabQueue)
             {
                 SubmitWorkOrder(simGame, workOrder);
             }
-            Globals.tempMechLabQueue.Clear();
+            tempMechLabQueue.Clear();
         }
 
         #endregion
@@ -346,7 +346,7 @@ namespace BTX_AdvancedMechLab.Features
                 cbillModifier *= 3f;
             }
 
-            if (Main.Settings.ArmorRepair.EnableTonnageRepairScaling)
+            if (Main.Settings.ArmorRepair.ScaleStructureRepairTimeByTonnage)
             {
                 float tonnageFactor = Mathf.InverseLerp(20f, 100f, tonnage);
                 techModifier *= Mathf.Lerp(1f, 4f, tonnageFactor);
@@ -363,9 +363,7 @@ namespace BTX_AdvancedMechLab.Features
         /// <list type="bullet">
         /// <item>Standard armor cost is 10,000 C-Bills per ton (125 C-Bills per point * 80 points)</item>
         /// <item>Armor types with higher PptMultiplier (e.g. Ferro 1.12x) pack more points per ton</item>
-        /// <item>Calculation: (base armor cbill cost / PptMultiplier) * actual armor cbill modifier
-        /// <br>e.g. Ferro: (1 ton std * 1.12 density) / (125 base points) = 1.12 tons effective</br>
-        /// <br>then 1.12 * (2.0 / 1.12) = 2.0x base cost = 20,000 C-Bills per ton</br></item>
+        /// <item>Calculation: (base armor cbill cost / PptMultiplier) * actual armor cbill modifier</item>
         /// </list>
         /// </remarks>
         public static void CalculateArmorRepairCost(MechDef mech, WorkOrderEntry_ModifyMechArmor workOrder)
@@ -379,18 +377,10 @@ namespace BTX_AdvancedMechLab.Features
                 GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);
             }
 
-            float techModifier = _techModifier;
-            float costMultiplier = _armor.CBCost / _armor.PptMultiplier;
+            float armorCostPerTon = _armor.CBCost / _armor.PptMultiplier;
 
-            if (Main.Settings.ArmorRepair.EnableTonnageRepairScaling)
-            {
-                float tonnage = mech.Chassis.Tonnage;
-                float tonnageFactor = Mathf.InverseLerp(20f, 100f, tonnage);
-                techModifier *= Mathf.Lerp(1f, 4f, tonnageFactor);
-            }
-
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _armor.TPCost * techModifier);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * costMultiplier * _cbillModifier);
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _armor.TPCost * _techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * armorCostPerTon * _cbillModifier);
         }
 
         /// <summary>
@@ -472,7 +462,7 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static bool NeedsStructureRepair(this MechDef mech)
         {
-            foreach (var cLoc in Globals.repairPriorities.Values)
+            foreach (var cLoc in repairPriorities.Values)
             {
                 var loadout = mech.GetLocationLoadoutDef(cLoc);
 
@@ -490,7 +480,7 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static bool NeedArmorRepair(this MechDef mech)
         {
-            foreach (var cLoc in Globals.repairPriorities.Values)
+            foreach (var cLoc in repairPriorities.Values)
             {
                 var loadout = mech.GetLocationLoadoutDef(cLoc);
 
