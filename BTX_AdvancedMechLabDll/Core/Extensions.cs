@@ -1,6 +1,7 @@
 using BattleTech;
 using BattleTech.UI;
 using CustomComponents;
+using HBS.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,67 @@ namespace BTX_AdvancedMechLab.Core
 {
     public static class Extensions
     {
+        extension(TagSet tags)
+        {
+            #region Armor Type
+
+            public ArmorType? GetArmorType()
+            {
+                string tag = tags.FirstOrDefault(t => t.StartsWith(ArmorPrefix));
+                return tag != null && Enum.TryParse<ArmorType>(tag.Substring(ArmorPrefix.Length), out var type) ? type : null;
+            }
+
+            public void SetArmorType(ArmorType type)
+            {
+                tags.RemoveRange(tags.Where(t => t.StartsWith(ArmorPrefix)));
+                tags.Add($"{ArmorPrefix}{type}");
+            }
+
+            #endregion
+
+            #region Cooling Type
+
+            public HeatSinkType? GetCoolingType()
+            {
+                string tag = tags.FirstOrDefault(t => t.StartsWith(CoolingPrefix));
+                return tag != null && Enum.TryParse<HeatSinkType>(tag.Substring(CoolingPrefix.Length), out var type) ? type : null;
+            }
+
+            public void SetCoolingType(HeatSinkType type)
+            {
+                tags.RemoveRange(tags.Where(t => t.StartsWith(CoolingPrefix)));
+                tags.Add($"{CoolingPrefix}{type}");
+            }
+
+            #endregion
+
+            #region Patchwork Locations
+
+            public ChassisLocations[] GetPatchworkLocations()
+            {
+                List<ChassisLocations> locations = [ChassisLocations.None];
+                var patchworkTags = tags.Where(t => t.StartsWith(PatchworkPrefix));
+
+                foreach (string tag in patchworkTags)
+                {
+                    if (Enum.TryParse<ChassisLocations>(tag.Substring(PatchworkPrefix.Length), out var location))
+                    {
+                        locations.Add(location);
+                    }
+                }
+                return [.. locations];
+            }
+
+            public void AddPatchworkLocation(ChassisLocations location)
+            {
+                if (!tags.Contains($"{PatchworkPrefix}{location}")) tags.Add($"{PatchworkPrefix}{location}");
+            }
+
+            public void RemovePatchworkLocation(ChassisLocations location) => tags.Remove($"{PatchworkPrefix}{location}");
+
+            #endregion
+        }
+
         extension(MechDef mech)
         {
             #region Structure and Armor Info
@@ -20,7 +82,6 @@ namespace BTX_AdvancedMechLab.Core
             public StructureInfo GetStructureInfo()
             {
                 var type = StructureType.Standard;
-                if (mech?.Chassis?.ChassisTags == null) return StructureTypes[type];
 
                 bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
                 foreach (string tag in mech.Chassis.ChassisTags)
@@ -42,32 +103,28 @@ namespace BTX_AdvancedMechLab.Core
             /// <summary>
             /// Retrieves the armor info of a mech.
             /// </summary>
-            public ArmorInfo GetArmorInfo()
+            public ArmorInfo GetArmorInfo(bool checkMechTags = true)
             {
+                if (checkMechTags)
+                {
+                    var armorType = mech.MechTags.GetArmorType();
+                    if (armorType != null) return ArmorTypes[(ArmorType)armorType];
+                }
+
                 var type = ArmorType.Standard;
-                if (mech == null) return ArmorTypes[type];
-
-                if (!string.IsNullOrEmpty(mech.ArmorType))
+                bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
+                foreach (string tag in mech.Chassis.ChassisTags)
                 {
-                    if (Enum.TryParse<ArmorType>(mech.ArmorType, out var result))
-                        type = result;
-                }
-                else
-                {
-                    bool isClan = mech.Chassis.ChassisTags.Contains("chassis_clan");
-                    foreach (string tag in mech.Chassis.ChassisTags)
+                    var match = ArmorTypes.FirstOrDefault(at => !string.IsNullOrEmpty(at.Value.Tag) && at.Value.Tag == tag);
+                    if (match.Value.Tag != null)
                     {
-                        var match = ArmorTypes.FirstOrDefault(at => !string.IsNullOrEmpty(at.Value.Tag) && at.Value.Tag == tag);
-                        if (match.Value.Tag != null)
-                        {
-                            type = match.Key;
-                            break;
-                        }
+                        type = match.Key;
+                        break;
                     }
-
-                    if (isClan && type == ArmorType.FerroFibrous)
-                        type = ArmorType.ClanFerroFibrous;
                 }
+
+                if (isClan && type == ArmorType.FerroFibrous)
+                    type = ArmorType.ClanFerroFibrous;
 
                 return ArmorTypes[type];
             }
@@ -79,7 +136,7 @@ namespace BTX_AdvancedMechLab.Core
             /// <summary>
             /// Calculates the total structure points of a mech.
             /// </summary>
-            public int GetStructurePoints()
+            public int CalculateTotalStructure()
             {
                 int structurePoints = 0;
                 foreach (var location in mech.Chassis.Locations)
@@ -93,7 +150,7 @@ namespace BTX_AdvancedMechLab.Core
             /// <summary>
             /// Calculates the current armor percentage of a mech.
             /// </summary>
-            public int GetArmorPercentage(out int currentArmor, out int maxArmor)
+            public int CalculateArmorPercentage(out int currentArmor, out int maxArmor)
             {
                 var chassis = mech.Chassis;
                 if (chassis == null)
@@ -157,11 +214,12 @@ namespace BTX_AdvancedMechLab.Core
                 var armor = mech.GetArmorInfo();
 
                 var patchworkMask = ChassisLocations.None;
-                if (mech.PatchworkLocations != null)
+                var patchworkLocations = mech.MechTags.GetPatchworkLocations();
+                if (patchworkLocations.Length > 0)
                 {
-                    for (int i = 0; i < mech.PatchworkLocations.Length; i++)
+                    for (int i = 0; i < patchworkLocations.Length; i++)
                     {
-                        patchworkMask |= mech.PatchworkLocations[i];
+                        patchworkMask |= patchworkLocations[i];
                     }
                 }
 

@@ -37,9 +37,7 @@
     </Reference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>$(BattleTechGameDir)\Mods\.modtek\AssembliesInjected\Assembly-CSharp.dll</HintPath>
-    </Reference>
+    <Reference Include="Assembly-CSharp" />
     <Reference Include="Assembly-CSharp-firstpass" />
     <Reference Include="CustomComponents">
       <HintPath>$(BattleTechGameDir)\Mods\CustomComponents\CustomComponents.dll</HintPath>

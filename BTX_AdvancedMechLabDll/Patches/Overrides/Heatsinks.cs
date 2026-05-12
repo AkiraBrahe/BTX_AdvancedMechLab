@@ -21,8 +21,11 @@ namespace BTX_AdvancedMechLab.Patches.Overrides
 
         public static float GetBaseHeatSinking(MechDef mech)
         {
-            float capacity = mech.CoolingType is not null and ("Double" or "ClanDouble") ? 6.0f : 3.0f;
-            return mech.InternalHeatSinks * capacity;
+            var cooling = mech.MechTags.GetCoolingType();
+            cooling ??= mech.Chassis.ChassisTags.Contains("chassis_DHS") ? HeatSinkType.Double : HeatSinkType.Single;
+
+            float capacity = cooling is HeatSinkType.Double or HeatSinkType.ClanDouble ? 6.0f : 3.0f;
+            return mech.Chassis.Heatsinks * capacity;
         }
 
         [HarmonyTranspiler]

@@ -5,6 +5,13 @@ namespace BTX_AdvancedMechLab.Core
 {
     public class Globals
     {
+        /* ADVANCED MECHLAB TAGS
+         * Names of custom tags used by Advanced MechLab.
+         */
+        public const string ArmorPrefix = "AML_Armor_";
+        public const string CoolingPrefix = "AML_Cooling_";
+        public const string PatchworkPrefix = "AML_Patchwork_";
+
         /* TEMP MECHLAB QUEUE
          * Temporary queue to hold post-battle work orders until player confirms they want them processed.
          */

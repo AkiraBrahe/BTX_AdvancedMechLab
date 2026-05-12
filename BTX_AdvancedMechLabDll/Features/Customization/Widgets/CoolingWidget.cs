@@ -1,7 +1,6 @@
 using BattleTech;
 using BattleTech.UI.TMProWrapper;
 using BattleTech.UI.Tooltips;
-using System;
 using UnityEngine;
 using static BattleTech.SimGameState;
 using static BTX_AdvancedMechLab.Features.EngineHeatSinks.HeatSinkManager;
@@ -21,8 +20,8 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 
         public void Refresh(MechDef mech, SimGameState simGame = null)
         {
-            Enum.TryParse<HeatSinkType>(mech.CoolingType, out var coolingType);
-            var specs = GetEngineSpecs(mech.Chassis, coolingType);
+            var hsType = mech.MechTags.GetCoolingType();
+            var specs = GetEngineSpecs(mech.Chassis, hsType);
 
             int baseCount = GetBaseHeatSinkCount(mech, specs);
             int internalCount = GetInternalHeatSinkCount(mech);
@@ -35,7 +34,7 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             _label.SetText($"{total}/{max} {specs.Abbreviation}");
             _label.color = isOverfilled ? Color.red : total >= max ? Color.cyan : total < 10 ? Color.red : Color.white;
 
-            string description = $"<b>Current Cooling: <color=#85DBF6>{internalCount}x {HeatSinkTypes[coolingType].Name} Heat Sinks</color></b>";
+            string description = $"<b>Current Cooling: <color=#85DBF6>{baseCount + internalCount}x {HeatSinkTypes[specs.HSType].Name} Heat Sinks</color></b>";
             description += $"\n<b>Engine: <color=#85DBF6>{specs.Rating}-rated {specs.Type} Engine</color></b>";
             description += "\n\nA 'Mech's engine requires a minimum of 10 heat sinks. ";
             if (specs.Rating < 250)
@@ -59,18 +58,18 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             {
                 description += $"\n\nAvailable in Inventory:";
                 var availableHeatSinks = GetAvailableHeatSinks(simGame);
-                foreach (var hsType in availableHeatSinks)
+                foreach (var heatSink in availableHeatSinks)
                 {
-                    int availableCount = simGame.GetItemCount(hsType.ExternalDefID, typeof(HeatSinkDef), ItemCountType.ALL);
+                    int availableCount = simGame.GetItemCount(heatSink.ExternalDefID, typeof(HeatSinkDef), ItemCountType.ALL);
                     int requiredCount = specs.MinInternal;
 
                     if (availableCount >= requiredCount)
                     {
-                        description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] {availableCount}x {hsType.Name} Heat Sinks</color>";
+                        description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] {availableCount}x {heatSink.Name} Heat Sinks</color>";
                     }
                     else
                     {
-                        description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] {availableCount}x {hsType.Name} Heat Sinks</color>";
+                        description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] {availableCount}x {heatSink.Name} Heat Sinks</color>";
                     }
                 }
             }

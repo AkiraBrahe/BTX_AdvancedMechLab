@@ -316,7 +316,7 @@ namespace BTX_AdvancedMechLab.Features
             if (mech.GUID != _lastMechGUID)
             {
                 _lastMechGUID = mech.GUID;
-                _totalStructure = mech.GetStructurePoints();
+                _totalStructure = mech.CalculateTotalStructure();
                 _structure = mech.GetStructureInfo();
                 _armor = mech.GetArmorInfo();
                 GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);
@@ -371,7 +371,7 @@ namespace BTX_AdvancedMechLab.Features
             if (mech.GUID != _lastMechGUID)
             {
                 _lastMechGUID = mech.GUID;
-                _totalStructure = mech.GetStructurePoints();
+                _totalStructure = mech.CalculateTotalStructure();
                 _structure = mech.GetStructureInfo();
                 _armor = mech.GetArmorInfo();
                 GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);

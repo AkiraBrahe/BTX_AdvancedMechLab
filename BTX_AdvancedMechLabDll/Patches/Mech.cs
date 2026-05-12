@@ -11,10 +11,9 @@ namespace BTX_AdvancedMechLab.Patches
         [HarmonyPostfix]
         public static void Postfix(Mech __instance)
         {
-            var effectManager = UnityGameInstance.BattleTechGame.Combat.EffectManager;
-
-            if (__instance.MechDef.CoolingType is "Double" or "ClanDouble")
+            if (__instance.MechDef.MechTags.GetCoolingType() is HeatSinkType.Double or HeatSinkType.ClanDouble)
             {
+                var effectManager = UnityGameInstance.BattleTechGame.Combat.EffectManager;
                 effectManager.CreateEffect(StatusEffects.DHSHeatPenaltyEffect, "DHSHeatPenalty", StatusEffects.RandomEffectID(), __instance, __instance, default, 0, false);
             }
         }

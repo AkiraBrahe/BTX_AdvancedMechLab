@@ -1,10 +1,49 @@
 using BattleTech;
-using BTX_AdvancedMechLab.Features;
+using BTX_AdvancedMechLab.Features.Armor;
+using BTX_AdvancedMechLab.Features.EngineHeatSinks;
+using CustomUnits;
 using System.Linq;
 using static BTX_AdvancedMechLab.Features.Maintenance;
 
 namespace BTX_AdvancedMechLab.Patches
 {
+    #region Game Start
+
+    /// <summary>
+    /// Sets default state for armor and cooling type on game load.
+    /// </summary>
+    [HarmonyPatch(typeof(SimGameState), "Rehydrate")]
+    public static class SimGameState_Rehydrate
+    {
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        public static void Postfix(SimGameState __instance)
+        {
+            if (__instance == null) return;
+
+            var activeMechs = __instance.ActiveMechs.Values.ToList().Where(m => !m.IsVehicle());
+            foreach (var mech in activeMechs)
+            {
+                if (mech.MechTags.GetArmorType() == null)
+                {
+                    var armor = mech.GetArmorInfo(false);
+                    mech.MechTags.SetArmorType(armor.Type);
+                    ArmorAutoFixer.NormalizeBlockers(mech);
+                }
+
+                if (mech.MechTags.GetCoolingType() == null)
+                {
+                    var specs = HeatSinkManager.GetEngineSpecs(mech.Chassis, null);
+                    mech.MechTags.SetCoolingType(specs.HSType);
+                    HeatSinkAutoFixer.NormalizeHeatSinkCount(mech);
+                }
+                }
+            }
+        }
+    }
+
+    #endregion
+
     #region Combat End
 
     /// <summary>
