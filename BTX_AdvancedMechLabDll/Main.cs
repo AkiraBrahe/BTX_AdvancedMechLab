@@ -48,7 +48,9 @@ namespace BTX_AdvancedMechLab
             harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechLabMechInfoWidget), "CalculateTonnage"), HarmonyPatchType.Postfix, "com.github.mcb5637.BTX_CAC_Compatibility");
             harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechValidationRules), "ValidateMechTonnage"), HarmonyPatchType.Prefix, "com.github.mcb5637.BTX_CAC_Compatibility");
 
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            var assembly = Assembly.GetExecutingAssembly();
+            CustomComponents.Registry.RegisterSimpleCustomComponents(assembly);
+            harmony.PatchAll(assembly);
         }
 
         internal static void RegisterAutoFixers()

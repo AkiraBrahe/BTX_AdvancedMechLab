@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
-using static BTX_AdvancedMechLab.Features.EngineHeatSinks.HeatSinkManager;
 
 namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 {
@@ -34,40 +32,32 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             Main.Log.LogDebug($"Auto-fixed heat sink counts for {mechDefs.Count} mechs in {sw.Elapsed.TotalSeconds:F2} seconds.");
         }
 
-        private static HashSet<string> processedChassis = [];
-
         internal static void NormalizeHeatSinkCount(MechDef mech)
         {
-            if (!string.IsNullOrEmpty(mech.CoolingType)) return;
-
             if (!mech.DataManager.ChassisDefs.TryGet(mech.Chassis.Description.Id, out var chassis))
                 chassis = mech.Chassis;
 
-            var specs = GetEngineSpecs(chassis);
+            var cache = chassis.GetComponent<AdvancedChassisData>();
+            if (cache == null) return;
+
+            // Step A: Determine how many heat sinks the engine can support.
+            var hsType = mech.MechTags.GetCoolingType();
+            var specs = HeatSinkManager.GetEngineSpecs(chassis, hsType);
+
+            if (cache.ExtraHSCount == 0 && specs.AdditionalSlots == 0) return;
+
+            // Step B: Internalize heat sinks if more can fit in the engine
             var inventory = mech.Inventory.ToList();
-
-            string internalId = specs.InternalDefID;
             string externalId = specs.ExternalDefID;
-            int heatSinkingPerHS = specs.HSType == EngineHSType.Single ? 3 : 6;
-            mech.CoolingType = specs.HSType.ToString();
+            string internalId = specs.InternalDefID;
 
-            int standardHSCount = (chassis.Heatsinks + 30) / heatSinkingPerHS;
-            int normalizedHSCount = Mathf.Min(10, specs.MinInternal);
-            mech.InternalHeatSinks = normalizedHSCount;
-
-            int internalToAdd = Mathf.Max(0, standardHSCount - 10);
-            int externalToAdd = Mathf.Max(0, 10 - normalizedHSCount);
-
-            // Step A: Convert excess heat dissipation into internal heat sinks
-            if (internalToAdd > 0)
+            var extraHeatSinks = cache.ExtraHSCount;
+            for (int i = 0; i < extraHeatSinks; i++)
             {
-                for (int i = 0; i < internalToAdd; i++)
-                {
-                    inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
-                }
+                inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
+                extraHeatSinks--;
             }
 
-            // Step B: Internalize heat sinks that can fit in the engine
             if (specs.AdditionalSlots > 0)
             {
                 var toMove = inventory.Where(c => c.ComponentDefID == externalId).Take(specs.AdditionalSlots).ToList();
@@ -82,9 +72,10 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             }
 
             // Step C: Externalize heat sinks that don't fit in the engine
-            if (externalToAdd > 0)
+            if (extraHeatSinks > 0)
             {
-                int hsSize = specs.HSType == EngineHSType.Single ? 1 : (specs.HSType == EngineHSType.Double ? 3 : 2);
+                int externalToAdd = extraHeatSinks;
+                int hsSize = HeatSinkTypes[specs.HSType].Slots;
 
                 var distribution = allLocations.ToDictionary(l => l, l => 0);
                 var freeSlots = distribution.Keys.ToDictionary(l => l, l => mech.GetFreeSlotsInLoc([.. inventory], l, hsSize));
@@ -100,21 +91,6 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                 }
             }
 
-            // Step D: Adjust chassis tonnage once based on added heat sinks
-            if (!processedChassis.Contains(chassis.Description.Id))
-            {
-                int addedHeatSinks = internalToAdd + externalToAdd;
-                chassis.InitialTonnage -= addedHeatSinks;
-                processedChassis.Add(chassis.Description.Id);
-            }
-
-            // Reassign chassis if prefabOverride is set
-            if (!ReferenceEquals(mech.Chassis, chassis))
-            {
-                mech.Chassis = chassis;
-            }
-
-            // Save changes
             mech.SetInventory([.. inventory]);
             mech.RefreshInventory();
         }
