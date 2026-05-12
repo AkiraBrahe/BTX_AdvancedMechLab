@@ -59,6 +59,7 @@ namespace BTX_AdvancedMechLab.Patches
             if (!__runOriginal) return;
 
             WorkOrderEntry_MechLab newWorkOrder = null;
+            HeatSinkManager.ProcessEngineCrits(mech);
             ProcessStructureRepairs(__instance, mech, ref newWorkOrder);
             ProcessComponentRepairs(__instance, mech, ref newWorkOrder);
             ProcessArmorRepairs(__instance, mech, ref newWorkOrder);

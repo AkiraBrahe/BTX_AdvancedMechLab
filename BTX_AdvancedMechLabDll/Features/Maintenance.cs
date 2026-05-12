@@ -1,8 +1,10 @@
 using BattleTech;
+using BTX_AdvancedMechLab.Features.EngineHeatSinks;
 using Quirks;
 using System;
 using System.Linq;
 using UnityEngine;
+using static BattleTech.SimGameState;
 
 namespace BTX_AdvancedMechLab.Features
 {
@@ -83,13 +85,24 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         public static void ProcessComponentRepairs(SimGameState simGame, MechDef mech, ref WorkOrderEntry_MechLab workOrder)
         {
-            if (!mech.HasDamagedComponents())
+            if (!mech.HasDamagedComponents() && !mech.HasDestroyedComponents())
                 return;
 
             try
             {
                 foreach (var component in mech.Inventory)
                 {
+                    if (component.DamageLevel == ComponentDamageLevel.Destroyed && HeatSinkManager.IsInternalHeatSink(component.ComponentDefID))
+                    {
+                        string externalID = HeatSinkManager.GetExternalID(component.ComponentDefID);
+                        if (!string.IsNullOrEmpty(externalID) && simGame.GetItemCount(externalID, ItemCountType.UNDAMAGED_ONLY) > 0)
+                        {
+                            Main.Log.Log($"Auto-replacing destroyed internal heat sink. Consuming 1x {externalID} from inventory.");
+                            simGame.RemoveItemStat(externalID, typeof(HeatSinkDef), false);
+                            component.DamageLevel = ComponentDamageLevel.Penalized;
+                        }
+                    }
+
                     if (component.DamageLevel == ComponentDamageLevel.Penalized)
                     {
                         workOrder ??= CreateBaseMechLabOrder(simGame, mech);

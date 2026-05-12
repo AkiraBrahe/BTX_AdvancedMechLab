@@ -23,7 +23,7 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             var hsType = mech.MechTags.GetCoolingType();
             var specs = GetEngineSpecs(mech.Chassis, hsType);
 
-            int baseCount = GetBaseHeatSinkCount(mech, specs);
+            int baseCount = GetBaseHeatSinkCount(mech);
             int internalCount = GetInternalHeatSinkCount(mech);
             int externalCount = GetExternalHeatSinkCount(mech);
 

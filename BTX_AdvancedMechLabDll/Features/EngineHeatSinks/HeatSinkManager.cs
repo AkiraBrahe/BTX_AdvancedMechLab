@@ -9,7 +9,7 @@ using static Extended_CE.BTComponents;
 namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 {
     /// <summary>
-    /// Handles heat sink management for engines.
+    /// Handles engine heat sink calculations, conversions, and processing of engine crits to damage internal heat sinks.
     /// </summary>
     public static class HeatSinkManager
     {
@@ -49,10 +49,10 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             int minInternal = Mathf.Min(10, maxInternal);
             int additionalSlots = Mathf.Max(0, maxInternal - 10);
 
-            var hsType = coolingType == null ? EngineHSType.Single : (EngineHSType)coolingType;
+            var hsType = coolingType == null ? HeatSinkType.Single : (HeatSinkType)coolingType;
             if (coolingType == null && chassis.ChassisTags.Contains("chassis_DHS"))
             {
-                hsType = chassis.ChassisTags.Contains("chassis_clan") ? EngineHSType.ClanDouble : EngineHSType.Double;
+                hsType = chassis.ChassisTags.Contains("chassis_clan") ? HeatSinkType.ClanDouble : HeatSinkType.Double;
             }
 
             var fixedInv = chassis.FixedEquipment?.ToList();
@@ -90,7 +90,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 
         #region Heat Sink Counts and Conversions
 
-        public static int GetBaseHeatSinkCount(MechDef mech, EngineSpecs? specs = null) => specs.HasValue ? specs.Value.MinInternal : GetEngineSpecs(mech.Chassis).MinInternal;
+        public static int GetBaseHeatSinkCount(MechDef mech) => mech.Chassis.Heatsinks;
 
         public static int GetInternalHeatSinkCount(MechDef mech) => mech.Inventory.Count(i => i.ComponentDefType == ComponentType.HeatSink && i.IsCategory("Internal"));
 
@@ -163,6 +163,54 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Engine Crit Processing
+
+        /// <summary>
+        /// Processes engine critical hits on a mech by damaging or destroying internal heat sinks after battle.
+        /// </summary>
+        public static void ProcessEngineCrits(MechDef mech)
+        {
+            int engineCrits = GetEngineCrits(mech.GUID);
+            if (engineCrits <= 0) return;
+
+            var internalHS = mech.Inventory.Where(i => IsInternalHeatSink(i.ComponentDefID) && i.DamageLevel != ComponentDamageLevel.Destroyed).ToList();
+            if (internalHS.Count == 0) return;
+
+            Main.Log.LogDebug($"Mech {mech.Description.UIName} suffered {engineCrits} engine crits. Processing internal heat sinks...");
+
+            int destroyChance = engineCrits > 1 ? 50 : 0;
+            if (engineCrits >= 3) destroyChance = 100;
+
+            for (int i = 0; i < engineCrits && i < internalHS.Count; i++)
+            {
+                if (destroyChance > 0 && UnityEngine.Random.Range(0, 100) < destroyChance)
+                {
+                    internalHS[i].DamageLevel = ComponentDamageLevel.Destroyed;
+                    Main.Log.LogDebug($"Destroyed internal heat sink {internalHS[i].ComponentDefID} due to engine crit.");
+                }
+                else
+                {
+                    Main.Log.LogDebug($"Damaged internal heat sink {internalHS[i].ComponentDefID} due to engine crit.");
+                    internalHS[i].DamageLevel = ComponentDamageLevel.Penalized;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of engine critical hits a mech sustained in battle.
+        /// </summary>
+        private static int GetEngineCrits(string mechGUID)
+        {
+            return string.IsNullOrEmpty(mechGUID)
+                ? 0
+                : MechTTRuleInfo.MechTTStatStore != null
+                  && MechTTRuleInfo.MechTTStatStore.TryGetValue(mechGUID, out var info)
+                    ? info.EngineCrits
+                    : 0;
         }
 
         #endregion
