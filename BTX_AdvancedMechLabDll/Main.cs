@@ -37,7 +37,9 @@ namespace BTX_AdvancedMechLab
 
         internal static void ApplyHarmonyPatches()
         {
-            // --- BEX Quirks ---
+            // --- BattleTech Extended ---
+            /* CASE Visualization */
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechLabLocationWidget), "ShowHighlightFrame"), HarmonyPatchType.Prefix, "BEX.BattleTech.Extended_CE");
             /* Repair Cost Modifiers */
             harmony.Unpatch(AccessTools.DeclaredMethod(typeof(SimGameState), "CreateMechRepairWorkOrder"), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
             harmony.Unpatch(AccessTools.Constructor(typeof(WorkOrderEntry_RepairMechStructure)), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");

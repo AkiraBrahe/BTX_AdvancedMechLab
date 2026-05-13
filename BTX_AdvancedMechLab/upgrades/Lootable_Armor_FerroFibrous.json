@@ -13,7 +13,7 @@
     "Purchasable": true,
     "Manufacturer": "Varied",
     "Model": "Armor Scrap",
-    "UIName": "Scrap (Ferro-Fibrous)",
+    "UIName": "Ferro-Fibrous Armor",
     "Id": "Lootable_Armor_FerroFibrous",
     "Name": "Ferro-Fibrous Armor",
     "Details": "Ferro-Fibrous armor uses a weave of ferro-steel, ferro-titanium, and diamond-weave fibers which boosts the tensile strength of the plating, providing a 12% increase in protection per ton over standard armor, but taking up more space on the 'Mech.",

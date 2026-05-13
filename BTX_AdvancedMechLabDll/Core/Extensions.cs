@@ -49,7 +49,7 @@ namespace BTX_AdvancedMechLab.Core
 
             public ChassisLocations[] GetPatchworkLocations()
             {
-                List<ChassisLocations> locations = [ChassisLocations.None];
+                List<ChassisLocations> locations = [];
                 var patchworkTags = tags.Where(t => t.StartsWith(PatchworkPrefix));
 
                 foreach (string tag in patchworkTags)
@@ -59,6 +59,8 @@ namespace BTX_AdvancedMechLab.Core
                         locations.Add(location);
                     }
                 }
+
+                if (locations.Count <= 0) locations.Add(ChassisLocations.None);
                 return [.. locations];
             }
 

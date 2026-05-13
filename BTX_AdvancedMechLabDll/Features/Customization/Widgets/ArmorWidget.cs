@@ -2,6 +2,8 @@ using BattleTech;
 using BattleTech.UI.TMProWrapper;
 using BattleTech.UI.Tooltips;
 using BTX_AdvancedMechLab.Features.Armor;
+using System;
+using System.Linq;
 using UnityEngine;
 using static BattleTech.SimGameState;
 
@@ -29,6 +31,9 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
             description += $"\n<b>Amount: <color=#85DBF6>{currentArmor}/{maxArmor} ({percent}%)</color></b>";
             description += "\n\nA 'Mech's armor is primordial to protect its internals in combat. ";
             description += armor.Description;
+
+            bool hasPatchwork = !mech.MechTags.GetPatchworkLocations().Contains(ChassisLocations.None);
+            if (hasPatchwork) description += "\n\n<color=#DE6729><b>PATCHWORK:</b> Locations highlighted in orange use standard plating.";
 
             if (simGame != null)
             {
