@@ -1,0 +1,38 @@
+{
+  "Custom": {
+    "Category": {
+      "CategoryID": "Scrap"
+    }
+  },
+  "StatName": null,
+  "RelativeModifier": 0,
+  "AbsoluteModifier": 0,
+  "Description": {
+    "Cost": 30000,
+    "Rarity": 0,
+    "Purchasable": true,
+    "Manufacturer": "Clans",
+    "Model": "Armor Scrap",
+    "UIName": "Clan Ferro-Fibrous Armor",
+    "Id": "Lootable_Armor_ClanFerro",
+    "Name": "Clan Ferro-Fibrous Armor",
+    "Details": "Clan Ferro-Fibrous armor uses a more advanced weave of specialized fibers, providing a 20% increase in protection per ton over standard armor while taking up half the space of standard ferro-fibrous armor.",
+    "Icon": "uixSvgIcon_action_end"
+  },
+  "BonusValueA": "",
+  "BonusValueB": "",
+  "ComponentType": "Upgrade",
+  "ComponentSubType": "NotSet",
+  "PrefabIdentifier": "",
+  "BattleValue": 0,
+  "InventorySize": 0,
+  "Tonnage": 1,
+  "AllowedLocations": "None",
+  "DisallowedLocations": "None",
+  "CriticalComponent": false,
+  "statusEffects": [],
+  "ComponentTags": {
+    "items": [],
+    "tagSetSourceFile": ""
+  }
+}

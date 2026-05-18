@@ -1,0 +1,38 @@
+{
+  "Custom": {
+    "Category": {
+      "CategoryID": "Scrap"
+    }
+  },
+  "StatName": null,
+  "RelativeModifier": 0,
+  "AbsoluteModifier": 0,
+  "Description": {
+    "Cost": 30000,
+    "Rarity": 0,
+    "Purchasable": true,
+    "Manufacturer": "Varied",
+    "Model": "Armor Scrap",
+    "UIName": "Reflective Armor",
+    "Id": "Lootable_Armor_Reflective",
+    "Name": "Reflective Armor",
+    "Details": "Reflective Armor is a specialized type of armor featuring a multi-layered heat-reflective coating. It much more efficiently dissipates laser and PPC fire, halving the damage taken from energy weapons. It is also extremely brittle, which increases the damage taken from melee and artillery attacks.",
+    "Icon": "uixSvgIcon_action_end"
+  },
+  "BonusValueA": "",
+  "BonusValueB": "",
+  "ComponentType": "Upgrade",
+  "ComponentSubType": "NotSet",
+  "PrefabIdentifier": "",
+  "BattleValue": 0,
+  "InventorySize": 0,
+  "Tonnage": 1,
+  "AllowedLocations": "None",
+  "DisallowedLocations": "None",
+  "CriticalComponent": false,
+  "statusEffects": [],
+  "ComponentTags": {
+    "items": [],
+    "tagSetSourceFile": ""
+  }
+}
