@@ -11,6 +11,7 @@ namespace BTX_AdvancedMechLab.Patches
 
     /// <summary>
     /// Sets default state for armor and cooling type on game load.
+    /// Deserializes the armor scrap ledger to track accumulated armor scraps in kilograms.
     /// </summary>
     [HarmonyPatch(typeof(SimGameState), "Rehydrate")]
     public static class SimGameState_Rehydrate
@@ -19,8 +20,12 @@ namespace BTX_AdvancedMechLab.Patches
         [HarmonyWrapSafe]
         public static void Postfix(SimGameState __instance)
         {
-            if (__instance == null) return;
+            InitializeMechStateDefaults(__instance);
+            ScrapManager.DeserializeLedger(__instance);
+        }
 
+        private static void InitializeMechStateDefaults(SimGameState __instance)
+        {
             var activeMechs = __instance.ActiveMechs.Values.ToList().Where(m => !m.IsVehicle());
             foreach (var mech in activeMechs)
             {
@@ -28,17 +33,28 @@ namespace BTX_AdvancedMechLab.Patches
                 {
                     var armor = mech.GetArmorInfo(false);
                     mech.MechTags.SetArmorType(armor.Type);
-                    ArmorAutoFixer.NormalizeBlockers(mech);
                 }
 
                 if (mech.MechTags.GetCoolingType() == null)
                 {
                     var specs = HeatSinkManager.GetEngineSpecs(mech.Chassis, null);
                     mech.MechTags.SetCoolingType(specs.HSType);
-                    HeatSinkAutoFixer.NormalizeHeatSinkCount(mech);
-                }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Serializes the armor scrap ledger to track accumulated armor scraps in kilograms.
+    /// </summary>
+    [HarmonyPatch(typeof(SimGameState), "Dehydrate")]
+    public static class SimGameState_Dehydrate
+    {
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        public static void Prefix(SimGameState __instance)
+        {
+            ScrapManager.SerializeLedger(__instance);
         }
     }
 

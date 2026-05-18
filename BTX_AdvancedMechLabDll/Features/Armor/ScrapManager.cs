@@ -1,29 +1,146 @@
 using BattleTech;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static BattleTech.SimGameState;
 
 namespace BTX_AdvancedMechLab.Features.Armor
 {
     /// <summary>
-    /// Handles salvage generation of armor scrap items and conversion of mech armor to scrap items in the inventory.
+    /// Handles the accumulation and consumption of armor scrap items. 
+    /// Armor scrap items are generated from mech parts that are salvaged from destroyed mechs.
     /// </summary>
     internal class ScrapManager
     {
+        #region Ledger Persistence
+
+        public static Dictionary<ArmorType, int> ArmorScrapLedger = [];
+        private const string LedgerStatName = "AML_ArmorScrapLedger";
+
+        /// <summary>
+        /// Deserializes the armor scrap ledger.
+        /// </summary>
+        public static void DeserializeLedger(SimGameState simGame)
+        {
+            if (simGame.CompanyStats.ContainsStatistic(LedgerStatName))
+            {
+                string json = simGame.CompanyStats.GetValue<string>(LedgerStatName);
+                try
+                {
+                    ArmorScrapLedger = JsonConvert.DeserializeObject<Dictionary<ArmorType, int>>(json) ?? [];
+                    Main.Log.LogDebug($"Deserialized Armor Scrap Ledger: {json}");
+                }
+                catch (Exception ex)
+                {
+                    Main.Log.LogException(ex);
+                    ArmorScrapLedger = [];
+                }
+            }
+            else
+            {
+                ArmorScrapLedger = [];
+                simGame.CompanyStats.AddStatistic<string>(LedgerStatName, "{}");
+            }
+        }
+
+        /// <summary>
+        /// Serializes the armor scrap ledger.
+        /// </summary>
+        public static void SerializeLedger(SimGameState simGame)
+        {
+            string json = JsonConvert.SerializeObject(ArmorScrapLedger);
+            simGame.CompanyStats.Set(LedgerStatName, json);
+            Main.Log.LogDebug($"Serialized Armor Scrap Ledger: {json}");
+        }
+
+        #endregion
+
+        #region Ledger Operations
+
+        /// <summary>
+        /// Gets the combined total of armor scrap in kilograms, including both the granular ledger and whole-ton inventory items.
+        /// </summary>
+        public static int GetTotalScrapKG(SimGameState simGame, ArmorType type)
+        {
+            if (!ArmorScrapLedger.TryGetValue(type, out int ledgerKG))
+                ledgerKG = 0;
+
+            var armor = ArmorTypes[type];
+            if (string.IsNullOrEmpty(armor.ScrapItemDefID))
+                return ledgerKG;
+
+            int itemTons = simGame.GetItemCount(armor.ScrapItemDefID, ItemCountType.ALL);
+            return (itemTons * 1000) + ledgerKG;
+        }
+
+        /// <summary>
+        /// Adds armor scrap kilograms to the ledger and automatically mints 1-ton inventory items for every 1000kg accumulated.
+        /// </summary>
+        public static void AddScrapKG(SimGameState simGame, ArmorType type, int kg)
+        {
+            if (!ArmorScrapLedger.ContainsKey(type))
+                ArmorScrapLedger[type] = 0;
+
+            ArmorScrapLedger[type] += kg;
+
+            // Mint items if ledger exceeds 1000kg
+            var armor = ArmorTypes[type];
+            if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
+            {
+                while (ArmorScrapLedger[type] >= 1000)
+                {
+                    ArmorScrapLedger[type] -= 1000;
+                    simGame.AddItemStat(armor.ScrapItemDefID, typeof(UpgradeDef), false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Consumes armor scrap kilograms from the ledger, automatically removing whole-ton inventory items if the ledger balance goes negative.
+        /// </summary>
+        /// <returns>False if the total scrap (ledger + inventory) is insufficient to cover the cost.</returns>
+        public static bool ConsumeScrapKG(SimGameState simGame, ArmorType type, int kg)
+        {
+            int total = GetTotalScrapKG(simGame, type);
+            if (total < kg) return false;
+
+            if (!ArmorScrapLedger.ContainsKey(type))
+                ArmorScrapLedger[type] = 0;
+
+            ArmorScrapLedger[type] -= kg;
+
+            // Consume items if ledger goes negative
+            var armor = ArmorTypes[type];
+            if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
+            {
+                while (ArmorScrapLedger[type] < 0)
+                {
+                    ArmorScrapLedger[type] += 1000;
+                    simGame.RemoveItemStat(armor.ScrapItemDefID, typeof(UpgradeDef), false);
+                }
+            }
+            return true;
+        }
+
+        #endregion
+
         #region Salvage Generation
 
         public static DateTime CurrentDate = new(1999, 1, 1);
 
         /// <summary>
-        /// Generates armor scrap items for the salvage pool based on the amount of armor tonnage recovered from the mech parts.
+        /// Generates armor scrap items for the salvage pool based on the amount of armor tonnage recovered from mech parts.
         /// </summary>
-        public static void GenerateArmorScrapItems(List<SalvageDef> salvagePool, SimGameState simGame)
+        public static void GenerateScrapItemsForSalvage(List<SalvageDef> salvagePool, SimGameState simGame)
         {
             if (salvagePool == null || simGame == null) return;
 
             var mechPartsInSalvage = salvagePool.Where(s => s.Type == SalvageDef.SalvageType.MECH_PART).ToList();
             if (!mechPartsInSalvage.Any()) return;
+
+            var scrapYields = new Dictionary<string, int>();
 
             var mechPartsByMech = mechPartsInSalvage.GroupBy(m => m.Description.Id);
             foreach (var mechPartGroup in mechPartsByMech)
@@ -45,17 +162,29 @@ namespace BTX_AdvancedMechLab.Features.Armor
 
                         if (scrapItems > 0)
                         {
-                            AddScrapComponentToPool(armor.ScrapItemDefID, salvagePool, simGame, scrapItems);
+                            if (scrapYields.ContainsKey(armor.ScrapItemDefID))
+                            {
+                                scrapYields[armor.ScrapItemDefID] += scrapItems;
+                            }
+                            else
+                            {
+                                scrapYields[armor.ScrapItemDefID] = scrapItems;
+                            }
                         }
                     }
                 }
+            }
+
+            foreach (var yield in scrapYields)
+            {
+                AddScrapItemsToSalvagePool(yield.Key, salvagePool, simGame, yield.Value);
             }
         }
 
         /// <summary>
         /// Adds armor scrap items to the salvage pool.
         /// </summary>
-        private static void AddScrapComponentToPool(string scrapID, List<SalvageDef> salvagePool, SimGameState simGame, int count)
+        private static void AddScrapItemsToSalvagePool(string scrapID, List<SalvageDef> salvagePool, SimGameState simGame, int count)
         {
             if (!simGame.DataManager.UpgradeDefs.TryGet(scrapID, out var scrapDef))
                 return;
@@ -65,6 +194,7 @@ namespace BTX_AdvancedMechLab.Features.Armor
                 Type = SalvageDef.SalvageType.COMPONENT,
                 RewardID = scrapID,
                 Description = new DescriptionDef(scrapDef.Description),
+                MechComponentDef = scrapDef,
                 ComponentType = ComponentType.Upgrade,
                 Count = count,
                 Damaged = false,
@@ -80,35 +210,66 @@ namespace BTX_AdvancedMechLab.Features.Armor
         #region Armor Scrap Conversion
 
         /// <summary>
-        /// Converts the armor of a mech into scrap items for the inventory.
+        /// Calculates the scrap weight in kilograms for a given amount of armor points.
         /// </summary>
-        public static void ConvertArmorToScraps(MechDef def, SimGameState sim)
+        public static int GetScrapWeightKGFromPoints(ArmorInfo armor, float armorPoints)
         {
-            var armor = def.GetArmorInfo();
-            if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
-            {
-                int armorScrapValue = GetArmorScrapValue(def, armor.PptMultiplier);
-                for (int i = 0; i < armorScrapValue; i++)
-                {
-                    sim.AddItemStat(armor.ScrapItemDefID, typeof(UpgradeDef), false);
-                }
-            }
+            return (int)Math.Round(armorPoints / (80 * armor.PptMultiplier) * 1000);
         }
 
         /// <summary>
-        /// Calculates the armor scrap value of a mech.
+        /// Calculates the total scrap weight in kilograms for the mech's current armor.
         /// </summary>
-        public static int GetArmorScrapValue(MechDef mech, float density)
+        public static int GetScrapWeightKGFromMech(MechDef mech, ArmorInfo armor, out float totalArmorPoints)
         {
-            float value = 0;
-            foreach (var armorLocation in mech.Locations)
+            totalArmorPoints = 0;
+            foreach (var location in mech.Locations)
             {
-                value += armorLocation.CurrentArmor;
-                value += Math.Max(0, armorLocation.CurrentRearArmor);
+                totalArmorPoints += location.CurrentArmor;
+                totalArmorPoints += Math.Max(0, location.CurrentRearArmor);
             }
 
-            float pointsPerTon = 80 * density;
-            return Mathf.RoundToInt(value / pointsPerTon);
+            return GetScrapWeightKGFromPoints(armor, totalArmorPoints);
+        }
+
+        /// <summary>
+        /// Converts mech armor into scraps, adding them to the ledger.
+        /// </summary>
+        public static void ConvertArmorToScraps(MechDef mech, SimGameState simGame)
+        {
+            var armor = mech.GetArmorInfo();
+            if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
+            {
+                int armorKG = GetScrapWeightKGFromMech(mech, armor, out float totalArmorPoints);
+                Main.Log.Log($"Converting {totalArmorPoints} points of {armor.Name} armor to {armorKG}kg of scrap.");
+                AddScrapKG(simGame, armor.Type, armorKG);
+            }
+        }
+
+        #endregion
+
+        #region Armor Scrap Consumption
+
+        /// <summary>
+        /// Consumes armor scraps for repairs if the location was destroyed in battle.
+        /// </summary>
+        public static void ConsumeScrapsForRepairs(SimGameState simGame, MechDef mech, ChassisLocations location int armorDifference)
+        {
+            var armor = mech.GetArmorInfo();
+            int totalScraps = GetTotalScrapKG(simGame, armor.Type);
+            int requiredScraps = GetScrapWeightKGFromPoints(armor, armorDifference);
+
+            if (requiredScraps <= totalScraps)
+            {
+                int consumedKG = ConsumeScrapKG(simGame, armor.Type, requiredScraps) ? requiredScraps : 0;
+                Main.Log.LogDebug($"Consumed {consumedKG} kg of {armor.Name} scraps to fully repair destroyed {location} of {mech.Name}.");
+            }
+            else
+            {
+                Main.Log.Log($"Not enough {armor.Name} scraps to fully repair {location} of {mech.Name}. Patching armor instead...");
+                mech.MechTags.AddPatchworkLocation(location);
+            }
+
         }
 
         #endregion

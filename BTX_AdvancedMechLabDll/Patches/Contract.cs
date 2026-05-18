@@ -26,17 +26,7 @@ namespace BTX_AdvancedMechLab.Patches
             }
 
             HeatSinkManager.ConvertInternalHeatSinksToExternalInSalvage(___finalPotentialSalvage, simGame);
-            ScrapManager.GenerateArmorScrapItems(___finalPotentialSalvage, simGame);
+            ScrapManager.GenerateScrapItemsForSalvage(___finalPotentialSalvage, simGame);
         }
-    }
-
-    /// <summary>
-    /// Bypasses the blacklist for double heat sinks from 3052 onwards so they can be rolled up in the salvage pool.
-    /// </summary>
-    [HarmonyPatch(typeof(LootMagnet.Helper), "IsBlacklisted")]
-    public static class LootMagnet_Helper_IsBlacklisted
-    {
-        [HarmonyPrefix]
-        public static bool Prefix(SalvageDef salvageDef) => ScrapManager.CurrentDate.Year < 3052 || salvageDef.Description.Id != "Gear_HeatSink_Generic_Double";
     }
 }

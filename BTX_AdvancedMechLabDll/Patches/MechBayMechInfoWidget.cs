@@ -32,9 +32,9 @@ namespace BTX_AdvancedMechLab.Patches
             var armor = __instance.selectedMech.GetArmorInfo();
             if (!string.IsNullOrEmpty(armor.ScrapItemDefID))
             {
-                int armorScrapValue = ScrapManager.GetArmorScrapValue(__instance.selectedMech, armor.PptMultiplier);
+                int armorKG = ScrapManager.GetScrapWeightKGFromMech(__instance.selectedMech, armor, out float totalArmorPoints);
                 GenericPopupBuilder.Create(Strings.T($"Scrap 'Mech?"), Strings.T($"Are you sure you want to scrap this 'Mech?\n\nThis 'Mech's components and armor will be stored and its chassis removed permanently from your inventory." +
-                    $"\n\nSCRAP VALUE: <color=#F79B26FF>{cbillString} + {armorScrapValue} tons of {armor.Name} armor</color>")).AddButton("Cancel", null, true, null).AddButton("Scrap", new Action(__instance.ConfirmScrapClicked), true, null)
+                    $"\n\nSCRAP VALUE: <color=#F79B26FF>{cbillString} + {armorKG / 1000f:F1}t of {armor.Name} armor</color>")).AddButton("Cancel", null, true, null).AddButton("Scrap", new Action(__instance.ConfirmScrapClicked), true, null)
                     .CancelOnEscape()
                     .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true)
                     .Render();

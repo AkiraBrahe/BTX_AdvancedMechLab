@@ -1,4 +1,5 @@
 using BattleTech;
+using BTX_AdvancedMechLab.Features.Armor;
 using BTX_AdvancedMechLab.Features.EngineHeatSinks;
 using Quirks;
 using System;
@@ -61,6 +62,12 @@ namespace BTX_AdvancedMechLab.Features
 
                 if (armorDifference > 0)
                 {
+                    // Use scraps if location was completely destroyed
+                    if (Mathf.Approximately(armorDifference, locationLoadout.CurrentArmor))
+                    {
+                        ScrapManager.ConsumeScrapsForRepairs(simGame, mech, location, armorDifference);
+                    }
+
                     workOrder ??= CreateBaseMechLabOrder(simGame, mech);
 
                     var armorWorkOrder = simGame.CreateMechArmorModifyWorkOrder(

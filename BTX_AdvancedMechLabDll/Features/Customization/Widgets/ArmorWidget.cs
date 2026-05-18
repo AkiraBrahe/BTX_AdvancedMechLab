@@ -41,13 +41,13 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
                 var availableTypes = ArmorManager.GetAvailableArmorTypes(simGame);
                 foreach (var armorType in availableTypes)
                 {
-                    int availableTonnage = simGame.GetItemCount(armorType.ScrapItemDefID, typeof(UpgradeDef), ItemCountType.ALL);
-                    int requiredTonnage = (int)Mathf.Round(currentArmor / (80 * armorType.PptMultiplier));
+                    int availableKG = ScrapManager.GetTotalScrapKG(simGame, armorType.Type);
+                    int requiredKG = (int)Math.Ceiling(currentArmor / (80 * armorType.PptMultiplier) * 1000);
 
-                    if (availableTonnage >= requiredTonnage)
-                        description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] {availableTonnage}t of {armorType.Name} Armor</color>";
+                    if (availableKG >= requiredKG)
+                        description += $"\n<color=#7FFF00>[<mspace=1em>x</mspace>] {availableKG / 1000f:F1}t of {armorType.Name} Armor</color>";
                     else
-                        description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] {availableTonnage}t of {armorType.Name} Armor</color>";
+                        description += $"\n<color=#FF7F50>[<mspace=1em> </mspace>] {availableKG / 1000f:F1}t of {armorType.Name} Armor</color>";
                 }
             }
 

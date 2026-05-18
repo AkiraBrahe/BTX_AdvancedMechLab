@@ -1,4 +1,5 @@
 using BattleTech;
+using BTX_AdvancedMechLab.Features.Armor;
 using LootMagnet;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,16 @@ using static LootMagnet.Helper;
 
 namespace BTX_AdvancedMechLab.Patches
 {
+    /// <summary>
+    /// Bypasses the blacklist for double heat sinks from 3052 onwards so they can be rolled up in the salvage pool.
+    /// </summary>
+    [HarmonyPatch(typeof(Helper), "IsBlacklisted")]
+    public static class LootMagnet_Helper_IsBlacklisted
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(SalvageDef salvageDef) => ScrapManager.CurrentDate.Year < 3052 || salvageDef.Description.Id != "Gear_HeatSink_Generic_Double";
+    }
+
     /// <summary>
     /// Prevents excessive armor scrap stacking when rolling up salvage.
     /// </summary>
@@ -21,6 +32,7 @@ namespace BTX_AdvancedMechLab.Patches
             if (salvageDef.RewardID == null || !salvageDef.RewardID.Contains("Lootable_Armor"))
                 return true;
 
+            Main.Log.LogDebug($"Rolling up armor scrap: {salvageDef.Description.Id} (Count: {salvageDef.Count})");
             float cappedThreshold = Math.Min(threshold, salvageDef.Description.Cost * Main.Settings.ArmorSalvage.MaxTonsPerStack);
 
             // Original logic with capped threshold
