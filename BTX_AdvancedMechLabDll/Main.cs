@@ -1,5 +1,7 @@
 using BattleTech;
 using BattleTech.UI;
+using BTX_AdvancedMechLab.Features.Armor;
+using BTX_AdvancedMechLab.Features.EngineHeatSinks;
 using HBS.Logging;
 using Newtonsoft.Json;
 using System;
@@ -57,14 +59,11 @@ namespace BTX_AdvancedMechLab
 
         internal static void RegisterAutoFixers()
         {
-            Features.Armor.ArmorAutoFixer.Register();
-            Features.EngineHeatSinks.HeatSinkAutoFixer.Register();
+            ArmorAutoFixer.Register();
+            HeatSinkAutoFixer.Register();
         }
 
-        internal static void RegisterValidators()
-        {
-
-        }
+        internal static void RegisterValidators() => HeatSinkValidators.Register();
 
         internal static void SyncQuirkSettings()
         {

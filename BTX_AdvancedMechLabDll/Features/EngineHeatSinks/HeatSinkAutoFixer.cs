@@ -40,47 +40,65 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
             var cache = chassis.GetComponent<AdvancedChassisData>();
             if (cache == null) return;
 
+            for (int i = 0; i < mech.Inventory.Length; i++)
+            {
+                if (mech.Inventory[i].ComponentDefType == ComponentType.HeatSink &&
+                    mech.Inventory[i].IsCategory("Internal"))
+                {
+                    return;
+                }
+            }
+
             // Step A: Determine how many heat sinks the engine can support.
             var hsType = mech.MechTags.GetCoolingType();
             var specs = HeatSinkManager.GetEngineSpecs(chassis, hsType);
 
             if (cache.ExtraHSCount == 0 && specs.AdditionalSlots == 0) return;
 
-            // Step B: Internalize heat sinks if more can fit in the engine
             var inventory = mech.Inventory.ToList();
             string externalId = specs.ExternalDefID;
             string internalId = specs.InternalDefID;
 
-            var extraHeatSinks = cache.ExtraHSCount;
-            for (int i = 0; i < extraHeatSinks; i++)
-            {
-                inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
-                extraHeatSinks--;
-            }
+            int heatSinksToAdd = cache.ExtraHSCount;
+            int slotsAvailable = specs.AdditionalSlots;
 
-            if (specs.AdditionalSlots > 0)
+            // Step B: Internalize heat sinks if more can fit in the engine
+            if (slotsAvailable > 0)
             {
-                var toMove = inventory.Where(c => c.ComponentDefID == externalId).Take(specs.AdditionalSlots).ToList();
-                if (toMove.Count > 0)
+                int internalToAdd = Math.Max(0, heatSinksToAdd - slotsAvailable);
+                if (internalToAdd > 0)
                 {
-                    inventory = [.. inventory.Except(toMove)];
-                    for (int i = 0; i < toMove.Count; i++)
+                    heatSinksToAdd -= internalToAdd;
+                    for (int i = 0; i < internalToAdd; i++)
                     {
                         inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
+                        slotsAvailable--;
+                    }
+                }
+
+                if (slotsAvailable > 0)
+                {
+                    var toMove = inventory.Where(c => c.ComponentDefID == externalId).Take(slotsAvailable).ToList();
+                    if (toMove.Count > 0)
+                    {
+                        inventory = [.. inventory.Except(toMove)];
+                        for (int i = 0; i < toMove.Count; i++)
+                        {
+                            inventory.Add(new MechComponentRef(internalId, "", ComponentType.HeatSink, ChassisLocations.CenterTorso) { DataManager = mech.DataManager });
+                        }
                     }
                 }
             }
 
             // Step C: Externalize heat sinks that don't fit in the engine
-            if (extraHeatSinks > 0)
+            if (heatSinksToAdd > 0)
             {
-                int externalToAdd = extraHeatSinks;
                 int hsSize = HeatSinkTypes[specs.HSType].Slots;
 
                 var distribution = allLocations.ToDictionary(l => l, l => 0);
                 var freeSlots = distribution.Keys.ToDictionary(l => l, l => mech.GetFreeSlotsInLoc([.. inventory], l, hsSize));
 
-                AddHeatSinks(mech, inventory, externalId, externalToAdd, distribution, freeSlots, out int leftover);
+                AddHeatSinks(mech, inventory, externalId, heatSinksToAdd, distribution, freeSlots, out int leftover);
 
                 if (leftover > 0)
                 {

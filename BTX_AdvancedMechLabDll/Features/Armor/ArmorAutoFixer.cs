@@ -40,11 +40,6 @@ namespace BTX_AdvancedMechLab.Features.Armor
             var cache = chassis.GetComponent<AdvancedChassisData>();
             if (cache == null) return;
 
-            for (int i = 0; i < mech.Inventory.Length; i++)
-            {
-                if (mech.Inventory[i].ComponentDefID.StartsWith("Gear_Armor_")) return;
-            }
-
             // Step A: Determine if the mech needs any blockers.
             var structure = mech.GetStructureInfo();
             var armor = mech.GetArmorInfo();
@@ -53,16 +48,21 @@ namespace BTX_AdvancedMechLab.Features.Armor
             if (totalRequired == 0) return;
 
             // Step B: Get current blockers and adjust them as needed.
-            var inventory = mech.Inventory.ToList();
-            var blockers = (cache.StockBlockers == null || cache.StockBlockers.Length == 0)
+            var invBlockers = mech.Inventory.Where(c => c.IsCategory("Blocker")).ToList();
+            var cachedBlockers = (cache.StockBlockers == null || cache.StockBlockers.Length == 0)
                 ? [] : cache.StockBlockers.Select(b => new MechComponentRef(b.DefID, "", b.Type, b.Location) { DataManager = mech.DataManager }).ToList();
+            var allBlockers = invBlockers.Concat(cachedBlockers).ToList();
 
-            int currentSlots = GetTotalBlockerSlots(blockers);
+            string baseID = ArmorManager.GetBlockerBaseID(structure, armor);
+            if (string.IsNullOrEmpty(baseID)) return;
+
+            string currentID = allBlockers.FirstOrDefault()?.ComponentDefID ?? "";
+            if (currentID != baseID) allBlockers.Clear();
+
+            int currentSlots = GetTotalBlockerSlots(allBlockers);
 
             if (currentSlots != totalRequired)
             {
-                string baseID = ArmorManager.GetBlockerBaseID(structure, armor);
-                if (string.IsNullOrEmpty(baseID)) return;
 
                 bool isClan = chassis.ChassisTags.Contains("chassis_clan");
                 if (!isClan)
@@ -70,22 +70,23 @@ namespace BTX_AdvancedMechLab.Features.Armor
                     // IS mech: Adjust existing blockers
                     if (currentSlots > totalRequired)
                     {
-                        ReduceBlockers(blockers, currentSlots - totalRequired);
+                        ReduceBlockers(allBlockers, currentSlots - totalRequired);
                     }
                     else
                     {
-                        AddBlockers(mech, ref blockers, baseID, totalRequired - currentSlots);
+                        AddBlockers(mech, ref allBlockers, baseID, totalRequired - currentSlots);
                     }
                 }
                 else
                 {
                     // Clan mech: Add blockers from scratch
-                    blockers.Clear();
-                    AddBlockers(mech, ref blockers, baseID, totalRequired);
+                    allBlockers.Clear();
+                    AddBlockers(mech, ref allBlockers, baseID, totalRequired);
                 }
             }
 
-            mech.SetInventory([.. inventory, .. blockers]);
+            var inventory = mech.Inventory.Except(invBlockers).ToList();
+            mech.SetInventory([.. inventory, .. allBlockers]);
             mech.RefreshInventory();
         }
 

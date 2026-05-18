@@ -54,5 +54,27 @@ namespace BTX_AdvancedMechLab.Features.Armor
 
             return armorTypes;
         }
+
+        private static readonly Random _rng = new();
+
+        /// <summary>
+        /// Returns a list of random chassis locations. Guarantees at least three locations, with a chance for more on "bad rolls".
+        /// </summary>
+        public static List<ChassisLocations> GetRandomPatchworkLocations()
+        {
+            var result = new HashSet<ChassisLocations>();
+
+            while (result.Count < 3)
+            {
+                result.Add(allLocations[_rng.Next(allLocations.Length)]);
+            }
+
+            while (_rng.NextDouble() < 0.20 && result.Count < allLocations.Length)
+            {
+                result.Add(allLocations[_rng.Next(allLocations.Length)]);
+            }
+
+            return [.. result];
+        }
     }
 }
