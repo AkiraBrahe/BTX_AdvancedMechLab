@@ -52,10 +52,7 @@ namespace BTX_AdvancedMechLab.Patches
     {
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        public static void Prefix(SimGameState __instance)
-        {
-            ScrapManager.SerializeLedger(__instance);
-        }
+        public static void Prefix(SimGameState __instance) => ScrapManager.SerializeLedger(__instance);
     }
 
     #endregion
@@ -186,7 +183,7 @@ namespace BTX_AdvancedMechLab.Patches
             if (mech == null)
                 return;
 
-            CalculateArmorRepairCost(mech, __result);
+            CalculateArmorRepairCost(__instance, mech, __result);
         }
     }
 

@@ -65,7 +65,7 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 
                     if (availableCount >= requiredCount)
                     {
-                        description += $"\n<color=#7FFF00>[<mspace=1em>✓</mspace>] {availableCount}x {heatSink.Name} Heat Sinks</color>";
+                        description += $"\n<color=#7FFF00>[<mspace=1em>x</mspace>] {availableCount}x {heatSink.Name} Heat Sinks</color>";
                     }
                     else
                     {

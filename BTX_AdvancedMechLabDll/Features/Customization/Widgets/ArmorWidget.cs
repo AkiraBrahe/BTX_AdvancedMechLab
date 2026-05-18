@@ -5,7 +5,6 @@ using BTX_AdvancedMechLab.Features.Armor;
 using System;
 using System.Linq;
 using UnityEngine;
-using static BattleTech.SimGameState;
 
 namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 {
@@ -26,14 +25,17 @@ namespace BTX_AdvancedMechLab.Features.Customization.Widgets
 
             _label.SetText($"{armor.Name}");
 
-            int percent = mech.GetArmorPercentage(out int currentArmor, out int maxArmor);
+            int percent = mech.CalculateArmorPercentage(out int currentArmor, out int maxArmor);
+            float weight = currentArmor / (80f * armor.PptMultiplier);
+
             string description = $"<b>Current Armor: <color=#85DBF6>{armor.Name} Armor</color></b>";
             description += $"\n<b>Amount: <color=#85DBF6>{currentArmor}/{maxArmor} ({percent}%)</color></b>";
+            description += $"\t<b>Weight: <color=#85DBF6>{weight:F1}t</color></b>";
             description += "\n\nA 'Mech's armor is primordial to protect its internals in combat. ";
             description += armor.Description;
 
             bool hasPatchwork = !mech.MechTags.GetPatchworkLocations().Contains(ChassisLocations.None);
-            if (hasPatchwork) description += "\n\n<color=#DE6729><b>PATCHWORK:</b> Locations highlighted in orange use standard plating.";
+            if (hasPatchwork) description += "\n\n<color=#DE6729><b>PATCHWORK:</b> Locations highlighted in orange have standard plating and offer no benefits until repaired.</color>";
 
             if (simGame != null)
             {

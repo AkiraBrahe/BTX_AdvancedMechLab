@@ -212,10 +212,7 @@ namespace BTX_AdvancedMechLab.Features.Armor
         /// <summary>
         /// Calculates the scrap weight in kilograms for a given amount of armor points.
         /// </summary>
-        public static int GetScrapWeightKGFromPoints(ArmorInfo armor, float armorPoints)
-        {
-            return (int)Math.Round(armorPoints / (80 * armor.PptMultiplier) * 1000);
-        }
+        public static int GetScrapWeightKGFromPoints(ArmorInfo armor, float armorPoints) => (int)Math.Round(armorPoints / (80 * armor.PptMultiplier) * 1000);
 
         /// <summary>
         /// Calculates the total scrap weight in kilograms for the mech's current armor.

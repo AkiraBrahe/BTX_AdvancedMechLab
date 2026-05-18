@@ -328,7 +328,7 @@ namespace BTX_AdvancedMechLab.Features
         /// <list type="bullet">
         /// <item>Standard structure weight is 10% of the mech tonnage. Base cost per ton is 4,000 C-Bills for standard structure
         /// <br>e.g. 100 ton mech with Standard (Weight=1 and CBCost=1) = 40,000 C-Bills, Endo (Weight=0.5 and CBCost=8) = 160,000 C-Bills.</br></item>
-        /// <item>Endo steel costs 96,000 C-Bills per ton (3x markup) before the technology is reintroduced in 3040, and 32,000 C-Bills per ton afterwards.</item>
+        /// <item>Endo steel costs 96,000 C-Bills per ton (3x markup) before the technology is reintroduced in 3040.</item>
         /// </list>
         /// </remarks>
         public static void CalculateStructureRepairCost(SimGameState simGame, MechDef mech, WorkOrderEntry_RepairMechStructure workOrder)
@@ -344,28 +344,34 @@ namespace BTX_AdvancedMechLab.Features
 
             if (_totalStructure == 0) return;
 
+            float techModifier = _techModifier;
+            float cbillModifier = _cbillModifier;
+
+            // Calculate total structure cost
             float tonnage = mech.Chassis.Tonnage;
             float structureWeight = tonnage * 0.10f * _structure.WeightMultiplier;
             float costPerTon = 4000f * _structure.CBCost;
             float structureCost = structureWeight * costPerTon;
+
+            // Calculate cost per point of structure
             float costPerPoint = structureCost / _totalStructure;
 
-            float techModifier = _techModifier;
-            float cbillModifier = _cbillModifier;
-
+            // If the location was destroyed, apply zero structure cost modifiers
             float maxLocStructure = mech.GetChassisLocationDef(workOrder.Location).InternalStructure;
             if (Mathf.Approximately(workOrder.StructureAmount, maxLocStructure))
             {
-                techModifier = simGame.Constants.MechLab.ZeroStructureTechPointModifier;
-                cbillModifier = simGame.Constants.MechLab.ZeroStructureCBillModifier;
+                techModifier *= simGame.Constants.MechLab.ZeroStructureTechPointModifier;
+                cbillModifier *= simGame.Constants.MechLab.ZeroStructureCBillModifier;
             }
 
+            // If the mech has prototype endo steel, apply prototype modifiers
             var currentDate = simGame.CurrentDate;
             if (_structure.Type == StructureType.EndoSteel && currentDate < new DateTime(3040, 1, 1))
             {
-                cbillModifier *= 3f;
+                cbillModifier *= Main.Settings.ArmorRepair.PrototypeEndoFerroRepairCostMultiplier;
             }
 
+            // Scale repair time by tonnage if enabled
             if (Main.Settings.ArmorRepair.ScaleStructureRepairTimeByTonnage)
             {
                 float tonnageFactor = Mathf.InverseLerp(20f, 100f, tonnage);
@@ -381,12 +387,12 @@ namespace BTX_AdvancedMechLab.Features
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item>Standard armor cost is 10,000 C-Bills per ton (125 C-Bills per point * 80 points)</item>
-        /// <item>Armor types with higher PptMultiplier (e.g. Ferro 1.12x) pack more points per ton</item>
-        /// <item>Calculation: (base armor cbill cost / PptMultiplier) * actual armor cbill modifier</item>
+        /// <item>Standard armor cost is 10,000 C-Bills per ton (125 C-Bills per point * 80 points).</item>
+        /// <item>Armor types with higher PptMultiplier (e.g. Ferro 1.12x) pack more points per ton.</item>
+        /// <item>Ferro-fibrous armor costs 60,000 C-Bills per ton (3x markup) before the technology is reintroduced in 3040.</item>
         /// </list>
         /// </remarks>
-        public static void CalculateArmorRepairCost(MechDef mech, WorkOrderEntry_ModifyMechArmor workOrder)
+        public static void CalculateArmorRepairCost(SimGameState simGame, MechDef mech, WorkOrderEntry_ModifyMechArmor workOrder)
         {
             if (mech.GUID != _lastMechGUID)
             {
@@ -397,10 +403,21 @@ namespace BTX_AdvancedMechLab.Features
                 GetQuirkModifiers(mech, out _techModifier, out _cbillModifier);
             }
 
+            float techModifier = _techModifier;
+            float cbillModifier = _cbillModifier;
+
+            // Calculate cost per ton of armor
             float armorCostPerTon = _armor.CBCost / _armor.PptMultiplier;
 
-            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _armor.TPCost * _techModifier);
-            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * armorCostPerTon * _cbillModifier);
+            // If the mech has prototype ferro-fibrous armor, apply prototype modifiers
+            var currentDate = simGame.CurrentDate;
+            if (_armor.Type == ArmorType.FerroFibrous && currentDate < new DateTime(3040, 1, 1))
+            {
+                cbillModifier *= Main.Settings.ArmorRepair.PrototypeEndoFerroRepairCostMultiplier;
+            }
+
+            workOrder.Cost = Mathf.CeilToInt(workOrder.Cost * _armor.TPCost * techModifier);
+            workOrder.CBillCost = Mathf.CeilToInt(workOrder.CBillCost * armorCostPerTon * cbillModifier);
         }
 
         /// <summary>

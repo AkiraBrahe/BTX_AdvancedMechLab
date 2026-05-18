@@ -37,7 +37,7 @@ namespace BTX_AdvancedMechLab.Features.Armor
         }
 
         /// <summary>
-        /// Returns a list of available armor types at current date.
+        /// Returns a list of available armor types at the current date.
         /// </summary>
         public static List<ArmorInfo> GetAvailableArmorTypes(SimGameState simGame)
         {

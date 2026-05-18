@@ -54,7 +54,7 @@ namespace BTX_AdvancedMechLab.Core.Data
             { ArmorType.Primitive, new ArmorInfo {
                 Type = ArmorType.Primitive,
                 Name = "Primitive",
-                Description = "Primitive armor provides two-thirds the protection of standard armor at half the cost.",
+                Description = "Primitive armor provides two-thirds the protection per ton of standard armor at half the cost.",
                 Tag = "chassis_primitive",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -67,7 +67,7 @@ namespace BTX_AdvancedMechLab.Core.Data
             { ArmorType.Industrial, new ArmorInfo {
                 Type = ArmorType.Industrial,
                 Name = "Industrial",
-                Description = "Industrial armor provides two-thirds the protection of standard armor at half the cost.",
+                Description = "Industrial armor provides two-thirds the protection per ton of standard armor at half the cost.",
                 Tag = "chassis_industrial",
                 ScrapItemDefID = string.Empty,
                 CriticalSlots = 0,
@@ -101,7 +101,7 @@ namespace BTX_AdvancedMechLab.Core.Data
                 ProductionDate = new DateTime(3040, 1, 1),
                 PptMultiplier = 1.12f,
                 TPCost = 1.5f,
-                CBCost = 2f // 20,000 C-Bills per ton
+                CBCost = 2f // 20,000 C-Bills per ton (60,000 C-Bills per ton before 3040)
             } },
             { ArmorType.ClanFerroFibrous, new ArmorInfo {
                 Type = ArmorType.ClanFerroFibrous,

@@ -1,6 +1,5 @@
 using BattleTech;
 using CustomComponents;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,10 +7,7 @@ using static Extended_CE.BTComponents;
 
 namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
 {
-    /// <summary>
-    /// Handles engine heat sink calculations, conversions, and processing of engine crits to damage internal heat sinks.
-    /// </summary>
-    public static class HeatSinkManager
+    internal class HeatSinkManager
     {
         #region Engine Specs
 
@@ -101,7 +97,7 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
         public static string GetExternalID(string internalID) => HeatSinkTypes.Values.FirstOrDefault(v => v.InternalDefID == internalID).ExternalDefID;
 
         /// <summary>
-        /// Returns a list of available heat sink types at current date.
+        /// Returns a list of available heat sink types at the current date.
         /// </summary>
         public static List<HeatSinkInfo> GetAvailableHeatSinks(SimGameState simGame)
         {
@@ -135,10 +131,11 @@ namespace BTX_AdvancedMechLab.Features.EngineHeatSinks
                         Main.Log.LogDebug($"Converting salvaged internal heat sink {salvage.RewardID} to {externalID}");
                         salvage.RewardID = externalID;
 
-                        // Attempt to update description
-                        // if (simGame.DataManager.HeatSinkDefs.TryGet(externalID, out var def))
-                        // {
-                        //     salvage.Description = new DescriptionDef(def.Description);
+                        if (simGame.DataManager.HeatSinkDefs.TryGet(externalID, out var def))
+                        {
+                            salvage.Description = new DescriptionDef(def.Description);
+                            salvage.MechComponentDef = def;
+                        }
                     }
                 }
             }

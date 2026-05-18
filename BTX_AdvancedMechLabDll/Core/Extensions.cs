@@ -186,12 +186,15 @@ namespace BTX_AdvancedMechLab.Core
             /// <summary>
             /// Calculates the total weight of a mech in kilograms.
             /// </summary>
-            public int CalculateWeightKG(MechLabPanel panel = null)
+            public int CalculateWeightKG(MechLabPanel panel = null, bool includeArmor = true)
             {
                 if (mech.Chassis == null) return 0;
 
                 int weightKG = (int)(mech.Chassis.InitialTonnage * 1000.0f);
-                weightKG += mech.CalculateArmorWeightKG(panel);
+                if (includeArmor)
+                {
+                    weightKG += mech.CalculateArmorWeightKG(panel);
+                }
 
                 var inventory = panel != null ? [.. panel.activeMechInventory] : mech.Inventory.ToList();
                 foreach (var i in inventory)
@@ -215,15 +218,9 @@ namespace BTX_AdvancedMechLab.Core
             {
                 var armor = mech.GetArmorInfo();
 
-                var patchworkMask = ChassisLocations.None;
                 var patchworkLocations = mech.MechTags.GetPatchworkLocations();
-                if (patchworkLocations.Length > 0)
-                {
-                    for (int i = 0; i < patchworkLocations.Length; i++)
-                    {
-                        patchworkMask |= patchworkLocations[i];
-                    }
-                }
+                var patchworkMask = ChassisLocations.None;
+                foreach (var location in patchworkLocations) patchworkMask |= location;
 
                 int armorWeightKG = 0;
                 foreach (var location in mech.Locations)
@@ -308,7 +305,7 @@ namespace BTX_AdvancedMechLab.Core
         extension(LocationDef chassisLocationDef)
         {
             /// <summary>
-            /// Evaluates whether a chassis location has rear armor.
+            /// Evaluates whether a chassis location definition has rear armor.
             /// </summary>
             public bool HasRearArmor() =>
                 chassisLocationDef.Location is ChassisLocations.CenterTorso or
