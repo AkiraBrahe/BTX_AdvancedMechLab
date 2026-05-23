@@ -45,6 +45,9 @@ namespace BTX_AdvancedMechLab
             /* Repair Cost Modifiers */
             harmony.Unpatch(AccessTools.DeclaredMethod(typeof(SimGameState), "CreateMechRepairWorkOrder"), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
             harmony.Unpatch(AccessTools.Constructor(typeof(WorkOrderEntry_RepairMechStructure)), HarmonyPatchType.Prefix, "BEX.BattleTech.MechQuirks");
+            /* Maximize Armor Button */
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechLabPanel), "OnMaxArmor"), HarmonyPatchType.Prefix, "BEX.BattleTech.Extended_CE");
+            harmony.Unpatch(AccessTools.DeclaredMethod(typeof(MechLabPanel), "OnMaxArmor"), HarmonyPatchType.Postfix, "BEX.BattleTech.Extended_CE");
 
             // --- CAC-C ---
             /* Tonnage Calculation */
