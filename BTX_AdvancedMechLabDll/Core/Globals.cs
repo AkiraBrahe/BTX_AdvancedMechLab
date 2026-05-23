@@ -5,6 +5,8 @@ namespace BTX_AdvancedMechLab.Core
 {
     public class Globals
     {
+        #region Tags
+
         /* ADVANCED MECHLAB TAGS
          * Names of custom tags used by Advanced MechLab.
          */
@@ -12,10 +14,51 @@ namespace BTX_AdvancedMechLab.Core
         public const string CoolingPrefix = "AML_Cooling_";
         public const string PatchworkPrefix = "AML_Patchwork_";
 
+        #endregion
+
+        #region Temporary Variables
+
         /* TEMP MECHLAB QUEUE
          * Temporary queue to hold post-battle work orders until player confirms they want them processed.
          */
         public static List<WorkOrderEntry_MechLab> tempMechLabQueue = [];
+
+        /* TEMP REPAIR INTENTIONS
+         * Temporary list to hold the intended repair actions for each mech until player confirms they want them processed.
+         */
+        public static List<RepairIntention> tempRepairIntentions = [];
+
+        /* REPAIR INTENTION
+         * Holds the intended repair actions for a single mech location.
+         */
+        public class RepairIntention
+        {
+            public string MechID { get; set; }
+            public ChassisLocations Location { get; set; }
+            public ArmorType ArmorType { get; set; }
+            public int RequiredScrapKG { get; set; }
+            public bool UsesPatchwork { get; set; }
+        }
+
+        /* TEMP REPAIR CONSUMPTION RESULT
+         * Temporary result of consuming scraps after all mech repairs have been processed.
+         */
+        public static ScrapConsumptionResult TempRepairResult { get; set; }
+
+        /* SCRAP CONSUMPTION RESULT
+         * Result of consuming scraps for armor repairs.
+         */
+        public enum ScrapConsumptionResult
+        {
+            NotSet,
+            Failed_InsufficientScrap,
+            Success_Depleted,
+            Success
+        }
+
+        #endregion
+
+        #region Constants
 
         /* REPAIR PRIORITIES
          * Set priority order of chassis locations for repairs (key 0 = highest priority).
@@ -65,5 +108,7 @@ namespace BTX_AdvancedMechLab.Core
             ChassisLocations.CenterTorso,
             ChassisLocations.Head
         ];
+
+        #endregion
     }
 }

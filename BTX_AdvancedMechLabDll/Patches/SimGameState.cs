@@ -136,6 +136,8 @@ namespace BTX_AdvancedMechLab.Patches
                 return;
             }
 
+            ScrapManager.ValidateRepairIntentions(__instance);
+
             if (Main.Settings.ArmorRepair.EnableAutoRepairPrompt)
             {
                 ShowRepairPrompt(__instance, mechRepairCount, skipMechCount);

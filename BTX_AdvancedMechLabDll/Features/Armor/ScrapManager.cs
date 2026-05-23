@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using static BattleTech.SimGameState;
 
 namespace BTX_AdvancedMechLab.Features.Armor
@@ -248,25 +247,97 @@ namespace BTX_AdvancedMechLab.Features.Armor
         #region Armor Scrap Consumption
 
         /// <summary>
-        /// Consumes armor scraps for repairs if the location was destroyed in battle.
+        /// Tracks a repair intention for a mech, recording the amount of scrap required for the repair.
         /// </summary>
-        public static void ConsumeScrapsForRepairs(SimGameState simGame, MechDef mech, ChassisLocations location int armorDifference)
+        public static void TrackRepairIntention(MechDef mech, ChassisLocations location, int armorDifference)
         {
             var armor = mech.GetArmorInfo();
-            int totalScraps = GetTotalScrapKG(simGame, armor.Type);
+            if (string.IsNullOrEmpty(armor.ScrapItemDefID)) return;
+
             int requiredScraps = GetScrapWeightKGFromPoints(armor, armorDifference);
 
-            if (requiredScraps <= totalScraps)
+            tempRepairIntentions.Add(new RepairIntention
             {
-                int consumedKG = ConsumeScrapKG(simGame, armor.Type, requiredScraps) ? requiredScraps : 0;
-                Main.Log.LogDebug($"Consumed {consumedKG} kg of {armor.Name} scraps to fully repair destroyed {location} of {mech.Name}.");
-            }
-            else
-            {
-                Main.Log.Log($"Not enough {armor.Name} scraps to fully repair {location} of {mech.Name}. Patching armor instead...");
-                mech.MechTags.AddPatchworkLocation(location);
-            }
+                MechID = mech.GUID,
+                Location = location,
+                ArmorType = armor.Type,
+                RequiredScrapKG = requiredScraps
+            });
+        }
 
+        /// <summary>
+        /// Validates all tracked repair intentions and determines if scraps are sufficient or if patchwork is required.
+        /// </summary>
+        public static void ValidateRepairIntentions(SimGameState simGame)
+        {
+            var intentionsByArmorType = tempRepairIntentions
+                .GroupBy(i => i.ArmorType)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var armorType in intentionsByArmorType.Keys)
+            {
+                var intentions = intentionsByArmorType[armorType];
+                int totalRequiredKG = intentions.Sum(i => i.RequiredScrapKG);
+                int availableKG = GetTotalScrapKG(simGame, armorType);
+
+                if (totalRequiredKG <= availableKG)
+                {
+                    // Enough scraps for all locations of this armor type
+                    foreach (var intention in intentions)
+                    {
+                        intention.UsesPatchwork = false;
+                    }
+
+                    bool scrapsDepleted = (availableKG - totalRequiredKG) < (totalRequiredKG / 2f);
+                    if (TempRepairResult != ScrapConsumptionResult.Failed_InsufficientScrap)
+                        TempRepairResult = scrapsDepleted ? ScrapConsumptionResult.Success_Depleted : ScrapConsumptionResult.Success;
+                }
+                else
+                {
+                    // Insufficient scraps: patch the remaining locations
+                    int remainingKG = availableKG;
+                    for (int i = 0; i < intentions.Count; i++)
+                    {
+                        if (remainingKG >= intentions[i].RequiredScrapKG)
+                        {
+                            intentions[i].UsesPatchwork = false;
+                            remainingKG -= intentions[i].RequiredScrapKG;
+                        }
+                        else
+                        {
+                            intentions[i].UsesPatchwork = true;
+                        }
+                    }
+
+                    TempRepairResult = ScrapConsumptionResult.Failed_InsufficientScrap;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies all tracked repair intentions, consuming scraps if available or applying patchwork if not.
+        /// </summary>
+        public static void ApplyRepairIntentions(SimGameState simGame)
+        {
+            foreach (var intention in tempRepairIntentions)
+            {
+                var mech = simGame.GetMechByID(intention.MechID);
+                if (mech == null) continue;
+
+                if (intention.UsesPatchwork)
+                {
+                    mech.MechTags.AddPatchworkLocation(intention.Location);
+                    Main.Log.Log($"Applying patchwork to {intention.Location} of {mech.Name} (insufficient scraps).");
+                }
+                else
+                {
+                    bool consumed = ScrapManager.ConsumeScrapKG(simGame, intention.ArmorType, intention.RequiredScrapKG);
+                    if (consumed)
+                    {
+                        Main.Log.LogDebug($"Consumed {intention.RequiredScrapKG} kg of {intention.ArmorType} scraps for {intention.Location} of {mech.Name}.");
+                    }
+                }
+            }
         }
 
         #endregion

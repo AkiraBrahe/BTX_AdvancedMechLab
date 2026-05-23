@@ -62,10 +62,9 @@ namespace BTX_AdvancedMechLab.Features
 
                 if (armorDifference > 0)
                 {
-                    // Use scraps if location was completely destroyed
                     if (Mathf.Approximately(armorDifference, locationLoadout.CurrentArmor))
                     {
-                        ScrapManager.ConsumeScrapsForRepairs(simGame, mech, location, armorDifference);
+                        ScrapManager.TrackRepairIntention(mech, location, armorDifference);
                     }
 
                     workOrder ??= CreateBaseMechLabOrder(simGame, mech);
@@ -88,7 +87,7 @@ namespace BTX_AdvancedMechLab.Features
         }
 
         /// <summary>
-        /// Processes the component repair of a mech.
+        /// Processes the component repairs of a mech.
         /// </summary>
         public static void ProcessComponentRepairs(SimGameState simGame, MechDef mech, ref WorkOrderEntry_MechLab workOrder)
         {
@@ -280,26 +279,34 @@ namespace BTX_AdvancedMechLab.Features
         }
 
         /// <summary>
+        /// Gets a description of the scrap status.
+        /// </summary>
+        internal static string GetScrapDescription()
+        {
+            return TempRepairResult switch
+            {
+                ScrapConsumptionResult.Success => " We have enough scrap to fully repair them.",
+                ScrapConsumptionResult.Success_Depleted => " We have enough scrap to fully repair them, but we're running low!",
+                ScrapConsumptionResult.Failed_InsufficientScrap => " We don't have enough scrap to fully repair them, but we can patch them up with what we have.",
+                _ => string.Empty,
+            };
+        }
+
+        /// <summary>
         /// Builds the final prompt message for the repair prompt.
         /// </summary>
         internal static string BuildFinalPromptMessage(string mechRepairCountDisplayed, int cbills, int techDays, int skipMechCount, string skipMechCountDisplayed)
         {
             string costString = $"It'll cost <color=#DE6729>{'¢'}{cbills:n0}</color> and {techDays} days for";
-            string question = "Want my crew to get started?";
+            string scrapString = GetScrapDescription();
 
-            if (skipMechCount > 0)
-            {
-                string skipMessagePart = $"{skipMechCountDisplayed} destroyed components, so I'll leave those repairs to you.";
-                return $"Boss, {mechRepairCountDisplayed} damaged. {costString} these repairs. {question}\n\nAlso, {skipMessagePart}\n\n";
-            }
-            else
-            {
-                return $"Boss, {mechRepairCountDisplayed} damaged on the last engagement. {costString} the repairs. {question}";
-            }
+            return skipMechCount > 0
+                ? $"Boss, {mechRepairCountDisplayed} damaged. {costString} these repairs.{scrapString}\n\nAlso, {skipMechCountDisplayed} destroyed components, so I'll leave those repairs to you."
+                : $"Boss, {mechRepairCountDisplayed} damaged on the last engagement. {costString} the repairs.{scrapString}\n\nWant my crew to get started?";
         }
 
         /// <summary>
-        /// Processes the repairs and clears the temporary mech lab queue.
+        /// Processes all repairs and clears the temporary repair queues.
         /// </summary>
         public static void ProcessRepairsAndClearQueue(SimGameState simGame)
         {
@@ -307,7 +314,19 @@ namespace BTX_AdvancedMechLab.Features
             {
                 SubmitWorkOrder(simGame, workOrder);
             }
+
+            ScrapManager.ApplyRepairIntentions(simGame);
+            ClearTempQueues();
+        }
+
+        /// <summary>
+        /// Clears the temporary repair queues.
+        /// </summary>
+        public static void ClearTempQueues()
+        {
             tempMechLabQueue.Clear();
+            tempRepairIntentions.Clear();
+            TempRepairResult = ScrapConsumptionResult.NotSet;
         }
 
         #endregion
